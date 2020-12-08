@@ -2,5 +2,6 @@
 {
     class BasicNode : ANode
     {
+        
     }
 }

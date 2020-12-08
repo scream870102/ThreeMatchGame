@@ -3,6 +3,7 @@
 //ATTEND: Controller should get refference from Init method not in awake method only 
 //TODO: MoveTo implemented
 //TODO: Shoudl Clamp Input
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,7 +19,6 @@ namespace TmUnity.Node
         protected Vector2 halfSize => Size / 2;
         protected Image image { get; private set; } = null;
         protected Vector2 aspectOffset { get; private set; } = default(Vector2);
-
         public RectTransform RectTransform { get; private set; } = null;
         public NodeController Controller { get; private set; } = null;
         public Vector2Int Point
@@ -64,10 +64,7 @@ namespace TmUnity.Node
 
 
 
-        public virtual void OnBeginDrag(PointerEventData e)
-        {
-            oldPos = RectTransform.anchoredPosition;
-        }
+        public virtual void OnBeginDrag(PointerEventData e) => oldPos = RectTransform.anchoredPosition;
 
         public virtual void OnEndDrag(PointerEventData e)
         {
@@ -81,10 +78,9 @@ namespace TmUnity.Node
 
         protected Vector2 ToAnchoredPosition() => new Vector2(point.x * Size.x, -point.y * Size.y);
 
-        public List<ANode> CheckResult(Direction exceptDir = Direction.NONE)
+        public void CheckResult(ref List<ANode> founds, Direction exceptDir = Direction.NONE)
         {
-            var resultNode = new List<ANode>();
-            resultNode.Add(this);
+            founds.Add(this);
             var nextPoint = default(Vector2Int);
             //left
             if (exceptDir != Direction.LEFT)
@@ -94,7 +90,11 @@ namespace TmUnity.Node
                 if (!Controller.IsPointOutOfBoard(nextPoint))
                 {
                     if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                        resultNode.AddRange(Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(Direction.RIGHT));
+                    {
+                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
+                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.RIGHT);
+
+                    }
                 }
             }
             //up
@@ -105,7 +105,11 @@ namespace TmUnity.Node
                 if (!Controller.IsPointOutOfBoard(nextPoint))
                 {
                     if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                        resultNode.AddRange(Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(Direction.DOWN));
+                    {
+                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
+                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.DOWN);
+                    }
+
                 }
             }
             //right
@@ -116,7 +120,11 @@ namespace TmUnity.Node
                 if (!Controller.IsPointOutOfBoard(nextPoint))
                 {
                     if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                        resultNode.AddRange(Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(Direction.LEFT));
+                    {
+                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
+                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.LEFT);
+                    }
+
                 }
             }
             //down
@@ -127,18 +135,21 @@ namespace TmUnity.Node
                 if (!Controller.IsPointOutOfBoard(nextPoint))
                 {
                     if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                        resultNode.AddRange(Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(Direction.UP));
+                    {
+                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
+                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.UP);
+                    }
+
                 }
             }
-            if (resultNode.Count > 1)
+#if UNITY_EDITOR
+            if (founds.Count > 1)
             {
-                Debug.Log(resultNode.Count);
-                foreach (var node in resultNode)
-                {
-                    Debug.Log($"{this.name} find {node.name}");
-                }
+                Debug.Log(founds.Count);
+                founds.ForEach(node => Debug.Log($"{this.name} find {node.name}"));
             }
-            return resultNode;
+#endif
+            return;
         }
 
     }

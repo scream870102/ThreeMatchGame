@@ -1,8 +1,10 @@
 ﻿//TODO: Implemented Node Check 
-//TODO: Implement Clamp position
+//ATTEND: Implement Clamp position
+//TODO: Check All Result
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace TmUnity.Node
 {
@@ -47,16 +49,11 @@ namespace TmUnity.Node
             Destroy(tmpNode.gameObject);
         }
 
-        public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
+        void Update() {
+            
+        }
 
-        // public Vector2 ClampPosition(Vector2 originalPos)
-        // {
-        //     var res = originalPos;
-        //     res.x = Mathf.Clamp(res.x, 0f, AdjustedBoardMaxSize.x);
-        //     var minY = boardParent.anchoredPosition.y * AspectFactor.y;
-        //     res.y = Mathf.Clamp(res.y, minY + adjustedNodeSize.y, minY + AdjustedBoardMaxSize.y);
-        //     return res;
-        // }
+        public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
 
         public Vector2Int ScreenPosToPoint(Vector2 pos)
         {
@@ -67,10 +64,6 @@ namespace TmUnity.Node
             return new Vector2Int(Mathf.FloorToInt(adjustedPos.x / adjustedNodeSize.x), y);
         }
 
-        // public Vector2 PointToScrennPos(Vector2Int point)
-        // {
-        //     return new Vector2(point.x * adjustedNodeSize.x, AdjustedBoardMaxSize.y - (point.y * adjustedNodeSize.y) + boardParent.anchoredPosition.y * AspectFactor.y);
-        // }
 
         public void Swap(Vector2Int movingNode, Vector2Int swapNode)
         {
@@ -82,6 +75,14 @@ namespace TmUnity.Node
             var tmpNode = ActiveNodes[swapNode.x, swapNode.y];
             ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
             ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
+        }
+        public void CheckAllResult()
+        {
+            var unpairNode = new List<ANode>();
+            foreach (var node in ActiveNodes)
+            {
+                Debug.Log(node.name);
+            }
         }
     }
 }
