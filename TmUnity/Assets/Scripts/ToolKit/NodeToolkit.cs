@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using ANode = TmUnity.Node.ANode;
 namespace TmUnity.ForEditor
 {
     class NodeToolkit : MonoBehaviour
@@ -21,7 +22,10 @@ namespace TmUnity.ForEditor
             myScript.RectTransform = myScript.RectTransform == null ? myScript.GetComponent<RectTransform>() : myScript.RectTransform;
             if (GUILayout.Button("Get Anchored Position"))
                 Debug.Log($"{myScript.Node.name}'s anchored position :{myScript.RectTransform.anchoredPosition}");
-
+            if (GUILayout.Button("Get Point"))
+                Debug.Log($"Anchroed Position : {myScript.Node.RectTransform.anchoredPosition} Point : {myScript.Node.Point} ");
+            if (GUILayout.Button("Check Result"))
+                myScript.Node.CheckResult();
 
         }
     }

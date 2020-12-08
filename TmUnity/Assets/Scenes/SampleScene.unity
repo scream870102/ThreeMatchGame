@@ -212,7 +212,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 93.97}
+  m_AnchoredPosition: {x: 0, y: 95}
   m_SizeDelta: {x: 0, y: 1440}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &463533224
@@ -458,17 +458,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77860523bc10f5041aa329e1d1cdc8aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BoardSize: {x: 6, y: 8}
-  NodeObject: {fileID: 6211205338791915553, guid: 1621cb75ee511f447b006c67c5118c33,
+  boardSize: {x: 6, y: 8}
+  nodeObject: {fileID: 6211205338791915553, guid: 1621cb75ee511f447b006c67c5118c33,
     type: 3}
-  BoardParent: {fileID: 463533223}
-  ActiveNodes: []
-  nodeSprite:
+  nodeSprites:
   - {fileID: 21300000, guid: df5d3974f79bf1843800b34f57e23e49, type: 3}
   - {fileID: 21300000, guid: a63ad10e26a577c4fa0341e3f3eb83db, type: 3}
-  - {fileID: 21300000, guid: a4a6168944210704596e146794964e6b, type: 3}
-  - {fileID: 21300000, guid: c53c6e97baa06f7429240e9947ee0b0a, type: 3}
   - {fileID: 21300000, guid: 358f0ae603ce27b4ba3da0d0baa96129, type: 3}
+  - {fileID: 21300000, guid: c53c6e97baa06f7429240e9947ee0b0a, type: 3}
+  - {fileID: 21300000, guid: a4a6168944210704596e146794964e6b, type: 3}
 --- !u!4 &1638221441
 Transform:
   m_ObjectHideFlags: 0
