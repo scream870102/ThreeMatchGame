@@ -28,10 +28,12 @@ namespace TmUnity.Node
             {
                 point = value;
                 RectTransform.anchoredPosition = ToAnchoredPosition();
+                gameObject.name = point.ToString();
             }
         }
         public NodeType Type { get; private set; } = default(NodeType);
         public Vector2 Size { get; private set; } = default(Vector2);
+        public bool IsActive { get; private set; } = true;
 
         protected virtual void Awake()
         {
@@ -50,6 +52,24 @@ namespace TmUnity.Node
             Controller = controller;
             image.sprite = sprite;
             aspectOffset = new Vector2(-halfSize.x * controller.AspectFactor.x, halfSize.y * controller.AspectFactor.y);
+            IsActive = true;
+            gameObject.SetActive(true);
+        }
+
+        public virtual void Eliminate()
+        {
+            IsActive = false;
+            gameObject.SetActive(false);
+        }
+
+        public virtual void Respawn(Vector2Int point, NodeType type, Sprite sprite)
+        {
+            Point = point;
+            Type = type;
+            image.sprite = sprite;
+            IsActive = true;
+            gameObject.SetActive(true);
+
         }
 
         public virtual void OnDrag(PointerEventData e)
@@ -78,78 +98,47 @@ namespace TmUnity.Node
 
         protected Vector2 ToAnchoredPosition() => new Vector2(point.x * Size.x, -point.y * Size.y);
 
-        public void CheckResult(ref List<ANode> founds, Direction exceptDir = Direction.NONE)
+
+
+        public void CheckResult(ref List<ANode> founds)
         {
             founds.Add(this);
             var nextPoint = default(Vector2Int);
             //left
-            if (exceptDir != Direction.LEFT)
-            {
-                nextPoint.x = Point.x - 1;
-                nextPoint.y = Point.y;
-                if (!Controller.IsPointOutOfBoard(nextPoint))
-                {
-                    if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                    {
-                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
-                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.RIGHT);
-
-                    }
-                }
-            }
+            nextPoint.x = Point.x - 1;
+            nextPoint.y = Point.y;
+            CheckNextNode(nextPoint, ref founds);
             //up
-            if (exceptDir != Direction.UP)
-            {
-                nextPoint.x = Point.x;
-                nextPoint.y = Point.y - 1;
-                if (!Controller.IsPointOutOfBoard(nextPoint))
-                {
-                    if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                    {
-                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
-                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.DOWN);
-                    }
-
-                }
-            }
+            nextPoint.x = Point.x;
+            nextPoint.y = Point.y - 1;
+            CheckNextNode(nextPoint, ref founds);
             //right
-            if (exceptDir != Direction.RIGHT)
-            {
-                nextPoint.x = Point.x + 1;
-                nextPoint.y = Point.y;
-                if (!Controller.IsPointOutOfBoard(nextPoint))
-                {
-                    if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                    {
-                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
-                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.LEFT);
-                    }
-
-                }
-            }
+            nextPoint.x = Point.x + 1;
+            nextPoint.y = Point.y;
+            CheckNextNode(nextPoint, ref founds);
             //down
-            if (exceptDir != Direction.DOWN)
-            {
-                nextPoint.x = Point.x;
-                nextPoint.y = Point.y + 1;
-                if (!Controller.IsPointOutOfBoard(nextPoint))
-                {
-                    if (Controller.ActiveNodes[nextPoint.x, nextPoint.y].Type == Type)
-                    {
-                        if (!founds.Contains(Controller.ActiveNodes[nextPoint.x, nextPoint.y]))
-                            Controller.ActiveNodes[nextPoint.x, nextPoint.y].CheckResult(ref founds, Direction.UP);
-                    }
+            nextPoint.x = Point.x;
+            nextPoint.y = Point.y + 1;
+            CheckNextNode(nextPoint, ref founds);
 
-                }
-            }
-#if UNITY_EDITOR
-            if (founds.Count > 1)
-            {
-                Debug.Log(founds.Count);
-                founds.ForEach(node => Debug.Log($"{this.name} find {node.name}"));
-            }
-#endif
+            // #if UNITY_EDITOR
+            //             if (founds.Count > 1)
+            //             {
+            //                 Debug.Log(founds.Count);
+            //                 founds.ForEach(node => Debug.Log($"{this.name} find {node.name}"));
+            //             }
+            // #endif
             return;
+        }
+
+        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
+        {
+            if (!Controller.IsPointOutOfBoard(nextPoint))
+            {
+                var nextNode = Controller.ActiveNodes[nextPoint.x, nextPoint.y];
+                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
+                    nextNode.CheckResult(ref founds);
+            }
         }
 
     }

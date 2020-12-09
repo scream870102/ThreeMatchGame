@@ -11,6 +11,7 @@ namespace TmUnity.ForEditor
         [HideInInspector] public ANode Node = null;
         [HideInInspector] public RectTransform RectTransform = null;
         public NodeType Type = NodeType.NORMAL;
+        public Vector2Int Point = default(Vector2Int);
         void Awake()
         {
             Node = GetComponent<ANode>();
@@ -19,6 +20,7 @@ namespace TmUnity.ForEditor
         void Update()
         {
             Type = Node.Type;
+            Point = Node.Point;
         }
     }
     [CustomEditor(typeof(NodeToolkit))]

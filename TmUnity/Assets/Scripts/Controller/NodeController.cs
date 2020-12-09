@@ -1,11 +1,9 @@
-﻿//TODO: Implemented Node Check 
-//ATTEND: Implement Clamp position
-//TODO: Check All Result
+﻿//ATTEND: Implement Clamp position
+//TODO: Implement Anmation
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
-
 namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
@@ -49,8 +47,14 @@ namespace TmUnity.Node
             Destroy(tmpNode.gameObject);
         }
 
-        void Update() {
-            
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+                StartCoroutine(CheckAllResult());
+            if (Input.GetKeyDown(KeyCode.C))
+                StartCoroutine(UpdateBoardPosition());
+            if (Input.GetKeyDown(KeyCode.V))
+                StartCoroutine(AddNewNode());
         }
 
         public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
@@ -64,7 +68,6 @@ namespace TmUnity.Node
             return new Vector2Int(Mathf.FloorToInt(adjustedPos.x / adjustedNodeSize.x), y);
         }
 
-
         public void Swap(Vector2Int movingNode, Vector2Int swapNode)
         {
             if (IsPointOutOfBoard(swapNode))
@@ -76,12 +79,81 @@ namespace TmUnity.Node
             ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
             ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
         }
-        public void CheckAllResult()
+
+        //Check if there is another under current node if true move current node to under
+        IEnumerator UpdateBoardPosition()
         {
+            //form left bottom
+            for (int j = boardSize.y - 2; j >= 0; j--)
+            {
+                for (int i = 0; i < boardSize.x; i++)
+                {
+                    var node = ActiveNodes[i, j];
+                    // if node is disable do nothing
+                    if (!node.IsActive)
+                        continue;
+                    ANode underNode = null;
+                    int nextY = j;
+                    //Try to find the next node
+                    while (underNode == null)
+                    {
+                        nextY++;
+                        // if next one is out of board break the loop
+                        if (nextY >= boardSize.y)
+                            break;
+                        var tmpNextNode = ActiveNodes[i, nextY];
+                        // if nextNode is the bottom row and is deactive add it
+                        if (nextY == boardSize.y - 1 && !tmpNextNode.IsActive)
+                            underNode = tmpNextNode;
+                        //if next node is active and above the next node is deactive add it
+                        if (tmpNextNode.IsActive && !ActiveNodes[i, nextY - 1].IsActive)
+                            underNode = ActiveNodes[i, nextY - 1];
+                    }
+                    if (underNode != null)
+                    {
+                        Swap(node.Point, underNode.Point);
+                        yield return new WaitForSeconds(.1f);
+                    }
+                }
+            }
+        }
+
+        public IEnumerator CheckAllResult()
+        {
+            // Add all node into unpairnode
             var unpairNode = new List<ANode>();
             foreach (var node in ActiveNodes)
+                unpairNode.Add(node);
+            // check all node in unpair node if is exist in result node eliminate it
+            for (int i = 0; i < unpairNode.Count; i++)
             {
-                Debug.Log(node.name);
+                if (unpairNode[i] == null)
+                    continue;
+                var checkNode = unpairNode[i];
+                var resultNode = new List<ANode>();
+                checkNode.CheckResult(ref resultNode);
+                if (resultNode.Count >= 3)
+                {
+                    foreach (var o in resultNode)
+                    {
+                        unpairNode[unpairNode.IndexOf(o)] = null;
+                        o.Eliminate();
+                    }
+                    yield return new WaitForSeconds(.2f);
+                }
+            }
+        }
+
+        public IEnumerator AddNewNode()
+        {
+            foreach (var node in ActiveNodes)
+            {
+                if (node.IsActive)
+                    continue;
+                var type = Random.Range(0, System.Enum.GetNames(typeof(NodeType)).Length);
+                node.Respawn(node.Point, (NodeType)type, nodeSprites[type]);
+                yield return new WaitForSeconds(.05f);
+
             }
         }
     }
