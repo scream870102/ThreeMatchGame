@@ -3,12 +3,12 @@
 //ATTEND: Controller should get refference from Init method not in awake method only 
 //TODO: MoveTo implemented
 //TODO: Shoudl Clamp Input
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Eccentric;
 using System.Collections.Generic;
+using Lean.Pool;
 
 namespace TmUnity.Node
 {
@@ -17,7 +17,6 @@ namespace TmUnity.Node
         Vector2Int point = default(Vector2Int);
         protected Vector2 oldPos { get; set; } = default(Vector2);
         protected Vector2 halfSize => Size / 2;
-        protected Image image { get; private set; } = null;
         protected Vector2 aspectOffset { get; private set; } = default(Vector2);
         public RectTransform RectTransform { get; private set; } = null;
         public NodeController Controller { get; private set; } = null;
@@ -42,15 +41,13 @@ namespace TmUnity.Node
 #if UNITY_EDITOR
             Controller = GameObject.FindObjectOfType<NodeController>();
 #endif
-            image = GetComponent<Image>();
         }
 
-        public virtual void Init(Vector2Int point, NodeType type, NodeController controller, Sprite sprite)
+        protected virtual void Init(Vector2Int point, NodeType type, NodeController controller)
         {
             Point = point;
             Type = type;
             Controller = controller;
-            image.sprite = sprite;
             aspectOffset = new Vector2(-halfSize.x * controller.AspectFactor.x, halfSize.y * controller.AspectFactor.y);
             IsActive = true;
             gameObject.SetActive(true);
@@ -62,21 +59,10 @@ namespace TmUnity.Node
             gameObject.SetActive(false);
         }
 
-        public virtual void Respawn(Vector2Int point, NodeType type, Sprite sprite)
-        {
-            Point = point;
-            Type = type;
-            image.sprite = sprite;
-            IsActive = true;
-            gameObject.SetActive(true);
-
-        }
-
         public virtual void OnDrag(PointerEventData e)
         {
 
             RectTransform.position = e.position + aspectOffset;
-            //var res = Controller.ScreenPosToPoint(Controller.ClampPosition(e.position));
             var res = Controller.ScreenPosToPoint(e.position);
             if (Point != res)
                 Controller.Swap(Point, res);

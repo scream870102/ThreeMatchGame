@@ -16,4 +16,13 @@
         DOWN,
         NONE,
     }
+    enum ChestType
+    {
+        HP_RECOVER,
+        ENERGY_UP,
+        ATK_UP,
+        DEF_UP,
+        CHARGE_LIMIT_DOWN,
+
+    }
 }

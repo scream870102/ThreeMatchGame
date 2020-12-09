@@ -458,15 +458,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77860523bc10f5041aa329e1d1cdc8aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentAtk: 0
+  currentDef: 0
+  chargeCount: 0
+  nextRoundDuration: 5
+  maxChrage: 100
   boardSize: {x: 6, y: 8}
-  nodeObject: {fileID: 6211205338791915553, guid: 1621cb75ee511f447b006c67c5118c33,
-    type: 3}
-  nodeSprites:
-  - {fileID: 21300000, guid: df5d3974f79bf1843800b34f57e23e49, type: 3}
-  - {fileID: 21300000, guid: a63ad10e26a577c4fa0341e3f3eb83db, type: 3}
-  - {fileID: 21300000, guid: 358f0ae603ce27b4ba3da0d0baa96129, type: 3}
-  - {fileID: 21300000, guid: c53c6e97baa06f7429240e9947ee0b0a, type: 3}
-  - {fileID: 21300000, guid: a4a6168944210704596e146794964e6b, type: 3}
+  nodeObjects:
+  - {fileID: 6252862563814508403, guid: 304af03ddd131574c960febc9c8175c8, type: 3}
+  - {fileID: 1598898789053058337, guid: 93353618b5d83cd489a62a41d2924008, type: 3}
+  - {fileID: 6700915402394592427, guid: 45db8ba6033003b409e9f98eaa2c2c36, type: 3}
+  - {fileID: 585329418041887542, guid: ee58ef821f897604ea9ccae4917d0957, type: 3}
+  - {fileID: 354577406348454814, guid: 66c54ada1904c9d41a7c21f593faf1b2, type: 3}
+  normalBasicAtk: 0
+  chrageBasicAtk: 0
+  energyBasicTimePlus: 0
+  defBasicUp: 0
 --- !u!4 &1638221441
 Transform:
   m_ObjectHideFlags: 0

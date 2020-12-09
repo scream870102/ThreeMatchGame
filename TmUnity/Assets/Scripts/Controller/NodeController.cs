@@ -1,16 +1,23 @@
 ﻿//ATTEND: Implement Clamp position
 //TODO: Implement Anmation
+//TODO: Player Stats Implement
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using Eccentric.Utils;
+using Lean.Pool;
 namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
+        [ReadOnly] [SerializeField] GameStats gameStats = null;
+
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
-        [SerializeField] GameObject nodeObject = null;
-        [SerializeField] List<Sprite> nodeSprites = new List<Sprite>();
+        [SerializeField] GameObject[] nodeObjects = null;
+        [SerializeField] PlayerAttr attr = null;
+
         RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
@@ -25,27 +32,57 @@ namespace TmUnity.Node
             refRes = boardParent.parent.GetComponent<CanvasScaler>().referenceResolution;
             //Set var
             AspectFactor = new Vector2(Screen.width / refRes.x, Screen.height / refRes.y);
-            var tmpNode = Instantiate(nodeObject).GetComponent<ANode>();
+            var tmpNode = Instantiate(nodeObjects[0]).GetComponent<ANode>();
             var nodeSize = tmpNode.Size;
             adjustedNodeSize = new Vector2(nodeSize.x * AspectFactor.x, nodeSize.y * AspectFactor.y);
             BoardMaxSize = new Vector2(boardSize.x * tmpNode.Size.x, boardSize.y * tmpNode.Size.y);
             AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
+            InitPlayerStats();
             //Init board
             ActiveNodes = new ANode[boardSize.x, boardSize.y];
             for (int i = 0; i < boardSize.x; i++)
             {
                 for (int j = 0; j < boardSize.y; j++)
                 {
-                    var node = Instantiate(nodeObject, boardParent).GetComponent<ANode>();
                     var type = Random.Range(0, System.Enum.GetNames(typeof(NodeType)).Length);
-                    ActiveNodes[i, j] = node;
-                    var point = new Vector2Int(i, j);
-                    node.name = point.ToString();
-                    node.Init(point, (NodeType)type, this, nodeSprites[type]);
+                    SpawnNode(i, j, (NodeType)type);
                 }
             }
             Destroy(tmpNode.gameObject);
         }
+
+        void InitPlayerStats()
+        {
+        }
+
+        void SpawnNode(int x, int y, NodeType type)
+        {
+
+            var node = LeanPool.Spawn(nodeObjects[(int)type], boardParent).GetComponent<ANode>();
+            ActiveNodes[x, y] = node;
+            var point = new Vector2Int(x, y);
+            node.name = point.ToString();
+            switch (type)
+            {
+                case NodeType.NORMAL:
+                    (node as NormalNode).Init(attr.NormalBasicAtk, point, (NodeType)type, this);
+                    break;
+                case NodeType.CHARGE:
+                    (node as ChargeNode).Init(attr.ChargeBasicAtk, point, (NodeType)type, this);
+                    break;
+                case NodeType.ENERGY:
+                    (node as EnergyNode).Init(attr.EnergyBasicTimePlus, point, (NodeType)type, this);
+                    break;
+                case NodeType.DEFENSE:
+                    (node as DefenseNode).Init(attr.DefBasicUp, point, (NodeType)type, this);
+                    break;
+                case NodeType.CHEST:
+                    var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
+                    (node as ChestNode).Init((ChestType)chestType, point, (NodeType)type, this);
+                    break;
+            }
+        }
+
 
         void Update()
         {
@@ -146,14 +183,29 @@ namespace TmUnity.Node
 
         public IEnumerator AddNewNode()
         {
+            var deactiveNodes = new List<ANode>();
             foreach (var node in ActiveNodes)
             {
-                if (node.IsActive)
-                    continue;
-                var type = Random.Range(0, System.Enum.GetNames(typeof(NodeType)).Length);
-                node.Respawn(node.Point, (NodeType)type, nodeSprites[type]);
-                yield return new WaitForSeconds(.05f);
+                if (!node.IsActive)
+                    deactiveNodes.Add(node);
+            }
 
+            var types = new NodeType[deactiveNodes.Count];
+            var typeNum = System.Enum.GetNames(typeof(NodeType)).Length;
+            for (int i = 0; i < deactiveNodes.Count / typeNum; i++)
+            {
+                for (int j = 0; j < typeNum; j++)
+                    types[i * typeNum + j] = (NodeType)j;
+            }
+            for (int i = 0; i < types.Length % typeNum; i++)
+                types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
+
+            for (int i = 0; i < deactiveNodes.Count; i++)
+            {
+                Vector2Int point = deactiveNodes[i].Point;
+                LeanPool.Despawn(deactiveNodes[i]);
+                SpawnNode(point.x, point.y, types[i]);
+                yield return new WaitForSeconds(.05f);
             }
         }
     }
