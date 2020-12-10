@@ -1,22 +1,21 @@
 ﻿//ATTEND: Implement Clamp position
 //TODO: Implement Anmation
 //TODO: Player Stats Implement
+//TODO: NodeEliminate Calculate
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
+using Eccentric;
 using Eccentric.Utils;
 using Lean.Pool;
+using System.Threading.Tasks;
 namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
-        [ReadOnly] [SerializeField] GameStats gameStats = null;
-
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodeObjects = null;
-        [SerializeField] PlayerAttr attr = null;
+        [SerializeField] NodeAttr attr = null;
 
         RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
@@ -25,6 +24,8 @@ namespace TmUnity.Node
         public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
         public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
+        public bool IsCanMove { get; private set; } = false;
+
         void Awake()
         {
             //Get Ref
@@ -37,7 +38,17 @@ namespace TmUnity.Node
             adjustedNodeSize = new Vector2(nodeSize.x * AspectFactor.x, nodeSize.y * AspectFactor.y);
             BoardMaxSize = new Vector2(boardSize.x * tmpNode.Size.x, boardSize.y * tmpNode.Size.y);
             AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
-            InitPlayerStats();
+            Destroy(tmpNode.gameObject);
+        }
+
+        void OnEnable() => DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
+
+        void OnDisable() => DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
+
+        void HandleGameStateChange(OnGameStateChange e) => IsCanMove = (e.NewState == GameState.WAIT || e.NewState == GameState.ACTION);
+
+        public void InitBoard()
+        {
             //Init board
             ActiveNodes = new ANode[boardSize.x, boardSize.y];
             for (int i = 0; i < boardSize.x; i++)
@@ -48,11 +59,7 @@ namespace TmUnity.Node
                     SpawnNode(i, j, (NodeType)type);
                 }
             }
-            Destroy(tmpNode.gameObject);
-        }
 
-        void InitPlayerStats()
-        {
         }
 
         void SpawnNode(int x, int y, NodeType type)
@@ -65,16 +72,16 @@ namespace TmUnity.Node
             switch (type)
             {
                 case NodeType.NORMAL:
-                    (node as NormalNode).Init(attr.NormalBasicAtk, point, (NodeType)type, this);
+                    (node as NormalNode).Init(attr.NormalAtk, point, (NodeType)type, this);
                     break;
                 case NodeType.CHARGE:
-                    (node as ChargeNode).Init(attr.ChargeBasicAtk, point, (NodeType)type, this);
+                    (node as ChargeNode).Init(attr.ChargeAtk, point, (NodeType)type, this);
                     break;
                 case NodeType.ENERGY:
-                    (node as EnergyNode).Init(attr.EnergyBasicTimePlus, point, (NodeType)type, this);
+                    (node as EnergyNode).Init(attr.Energy, point, (NodeType)type, this);
                     break;
                 case NodeType.DEFENSE:
-                    (node as DefenseNode).Init(attr.DefBasicUp, point, (NodeType)type, this);
+                    (node as DefenseNode).Init(attr.Def, point, (NodeType)type, this);
                     break;
                 case NodeType.CHEST:
                     var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
@@ -83,16 +90,22 @@ namespace TmUnity.Node
             }
         }
 
+        public async Task CalculateResultAsync()
+        {
+            await CheckAllResultAsync();
+            await UpdateBoardPositionAsync();
+            var isAnyNodeSpawn = await AddNewNodeAsync();
+            if (isAnyNodeSpawn)
+                await CalculateResultAsync();
+        }
 
-        void Update()
+#if UNITY_EDITOR
+        async void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
-                StartCoroutine(CheckAllResult());
-            if (Input.GetKeyDown(KeyCode.C))
-                StartCoroutine(UpdateBoardPosition());
-            if (Input.GetKeyDown(KeyCode.V))
-                StartCoroutine(AddNewNode());
+                await CalculateResultAsync();
         }
+#endif
 
         public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
 
@@ -118,7 +131,7 @@ namespace TmUnity.Node
         }
 
         //Check if there is another under current node if true move current node to under
-        IEnumerator UpdateBoardPosition()
+        async Task UpdateBoardPositionAsync()
         {
             //form left bottom
             for (int j = boardSize.y - 2; j >= 0; j--)
@@ -149,13 +162,13 @@ namespace TmUnity.Node
                     if (underNode != null)
                     {
                         Swap(node.Point, underNode.Point);
-                        yield return new WaitForSeconds(.1f);
+                        await Task.Delay(100);
                     }
                 }
             }
         }
 
-        public IEnumerator CheckAllResult()
+        async Task CheckAllResultAsync()
         {
             // Add all node into unpairnode
             var unpairNode = new List<ANode>();
@@ -171,18 +184,40 @@ namespace TmUnity.Node
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
                 {
+                    var type = resultNode[0].Type;
+                    DomainEvents.Raise<OnComboPlus>(new OnComboPlus());
                     foreach (var o in resultNode)
                     {
                         unpairNode[unpairNode.IndexOf(o)] = null;
                         o.Eliminate();
+                        switch (type)
+                        {
+                            case NodeType.NORMAL:
+                                //(o as NormalNode)
+                                Debug.Log("NORMAL CLEAR");
+                                break;
+                            case NodeType.CHARGE:
+                                Debug.Log("CHARGE CLEAR");
+                                break;
+                            case NodeType.ENERGY:
+                                Debug.Log("ENERGY CLEAR");
+                                break;
+                            case NodeType.DEFENSE:
+                                Debug.Log("DEFENSE CLEAR");
+                                break;
+                            case NodeType.CHEST:
+                                Debug.Log("CHEST CLEAR");
+                                break;
+                        }
                     }
-                    yield return new WaitForSeconds(.2f);
+                    await Task.Delay(200);
                 }
             }
         }
 
-        public IEnumerator AddNewNode()
+        async Task<bool> AddNewNodeAsync()
         {
+            var isAnyNodeSpawn = false;
             var deactiveNodes = new List<ANode>();
             foreach (var node in ActiveNodes)
             {
@@ -202,11 +237,13 @@ namespace TmUnity.Node
 
             for (int i = 0; i < deactiveNodes.Count; i++)
             {
+                isAnyNodeSpawn = true;
                 Vector2Int point = deactiveNodes[i].Point;
                 LeanPool.Despawn(deactiveNodes[i]);
                 SpawnNode(point.x, point.y, types[i]);
-                yield return new WaitForSeconds(.05f);
+                await Task.Delay(50);
             }
+            return isAnyNodeSpawn;
         }
     }
 }

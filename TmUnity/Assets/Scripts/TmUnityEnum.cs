@@ -22,7 +22,19 @@
         ENERGY_UP,
         ATK_UP,
         DEF_UP,
-        CHARGE_LIMIT_DOWN,
+        CHARGE_COUNT_PLUS,
+    }
 
+
+
+}
+namespace TmUnity
+{
+    enum GameState
+    {
+        WAIT,
+        ACTION,
+        ANIMATE,
+        ENEMY,
     }
 }

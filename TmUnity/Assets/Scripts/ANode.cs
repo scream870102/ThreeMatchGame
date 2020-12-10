@@ -12,7 +12,7 @@ using Lean.Pool;
 
 namespace TmUnity.Node
 {
-    abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
+    abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
     {
         Vector2Int point = default(Vector2Int);
         protected Vector2 oldPos { get; set; } = default(Vector2);
@@ -33,6 +33,8 @@ namespace TmUnity.Node
         public NodeType Type { get; private set; } = default(NodeType);
         public Vector2 Size { get; private set; } = default(Vector2);
         public bool IsActive { get; private set; } = true;
+        protected bool isCanMove { get; private set; } = false;
+        protected bool isDraging { get; private set; } = false;
 
         protected virtual void Awake()
         {
@@ -59,24 +61,48 @@ namespace TmUnity.Node
             gameObject.SetActive(false);
         }
 
+
+        public virtual void OnPointerDown(PointerEventData e)
+        {
+            isCanMove = Controller.IsCanMove;
+        }
+
+        public virtual void OnBeginDrag(PointerEventData e)
+        {
+            if (!isCanMove)
+                return;
+            isDraging = true;
+            oldPos = RectTransform.anchoredPosition;
+            DomainEvents.Raise<OnNodeDragBegin>(new OnNodeDragBegin(this));
+        }
+
         public virtual void OnDrag(PointerEventData e)
         {
-
+            if (!isCanMove || !isDraging)
+                return;
             RectTransform.position = e.position + aspectOffset;
             var res = Controller.ScreenPosToPoint(e.position);
             if (Point != res)
                 Controller.Swap(Point, res);
         }
 
-
-
-        public virtual void OnBeginDrag(PointerEventData e) => oldPos = RectTransform.anchoredPosition;
+        public virtual void OnPointerUp(PointerEventData e)
+        {
+            CorrectPos();
+        }
 
         public virtual void OnEndDrag(PointerEventData e)
         {
-            CorrectPos();
-            DomainEvents.Raise<OnNodeDragEnd>(new OnNodeDragEnd(this));
+            if (isDraging && isCanMove)
+            {
+                isCanMove = false;
+                isDraging = false;
+                DomainEvents.Raise<OnNodeDragEnd>(new OnNodeDragEnd(this));
+            }
+
         }
+
+
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
 
