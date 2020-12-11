@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Eccentric;
-using Eccentric.Utils;
 using Lean.Pool;
 using System.Threading.Tasks;
 namespace TmUnity.Node
@@ -20,6 +19,7 @@ namespace TmUnity.Node
         RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
+        ANode currentNode = null;
         public Vector2 AspectFactor { get; private set; } = default(Vector2);
         public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
         public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
@@ -41,11 +41,26 @@ namespace TmUnity.Node
             Destroy(tmpNode.gameObject);
         }
 
-        void OnEnable() => DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
+        void OnEnable()
+        {
+            DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
+            DomainEvents.Register<OnNodeDragBegin>(HandleNodeDragBegin);
+            DomainEvents.Register<OnNodeDragEnd>(HandleNodeDragEnd);
+            DomainEvents.Register<OnForceEndDrag>(HandleForceEndDrag);
+        }
 
-        void OnDisable() => DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
+        void OnDisable()
+        {
+            DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
+            DomainEvents.UnRegister<OnNodeDragBegin>(HandleNodeDragBegin);
+            DomainEvents.UnRegister<OnNodeDragEnd>(HandleNodeDragEnd);
+            DomainEvents.UnRegister<OnForceEndDrag>(HandleForceEndDrag);
+        }
 
         void HandleGameStateChange(OnGameStateChange e) => IsCanMove = (e.NewState == GameState.WAIT || e.NewState == GameState.ACTION);
+        void HandleNodeDragBegin(OnNodeDragBegin e) => currentNode = e.Node;
+        void HandleNodeDragEnd(OnNodeDragEnd e) => currentNode = null;
+        void HandleForceEndDrag(OnForceEndDrag e) => currentNode?.ForceEndDrag();
 
         public void InitBoard()
         {
@@ -85,7 +100,7 @@ namespace TmUnity.Node
                     break;
                 case NodeType.CHEST:
                     var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
-                    (node as ChestNode).Init((ChestType)chestType, point, (NodeType)type, this);
+                    (node as ChestNode).Init(attr.ChestNodeAttr, (ChestType)chestType, point, (NodeType)type, this);
                     break;
             }
         }
@@ -99,11 +114,88 @@ namespace TmUnity.Node
                 await CalculateResultAsync();
         }
 
+        public void CalculateResult()
+        {
+            // Add all node into unpairnode
+            var unpairNode = new List<ANode>();
+            foreach (var node in ActiveNodes)
+                unpairNode.Add(node);
+            // check all node in unpair node if is exist in result node eliminate it
+            for (int i = 0; i < unpairNode.Count; i++)
+            {
+                if (unpairNode[i] == null)
+                    continue;
+                var checkNode = unpairNode[i];
+                var resultNode = new List<ANode>();
+                checkNode.CheckResult(ref resultNode);
+                if (resultNode.Count >= 3)
+                    CheckResult(resultNode, unpairNode);
+            }
+
+            //form left bottom
+            for (int j = boardSize.y - 2; j >= 0; j--)
+            {
+                for (int i = 0; i < boardSize.x; i++)
+                {
+                    var node = ActiveNodes[i, j];
+                    // if node is disable do nothing
+                    if (!node.IsActive)
+                        continue;
+                    ANode underNode = null;
+                    int nextY = j;
+                    //Try to find the next node
+                    while (underNode == null)
+                    {
+                        nextY++;
+                        // if next one is out of board break the loop
+                        if (nextY >= boardSize.y)
+                            break;
+                        var tmpNextNode = ActiveNodes[i, nextY];
+                        // if nextNode is the bottom row and is deactive add it
+                        if (nextY == boardSize.y - 1 && !tmpNextNode.IsActive)
+                            underNode = tmpNextNode;
+                        //if next node is active and above the next node is deactive add it
+                        if (tmpNextNode.IsActive && !ActiveNodes[i, nextY - 1].IsActive)
+                            underNode = ActiveNodes[i, nextY - 1];
+                    }
+                    if (underNode != null)
+                        Swap(node.Point, underNode.Point);
+                }
+            }
+            var isAnyNodeSpawn = false;
+            var deactiveNodes = new List<ANode>();
+            foreach (var node in ActiveNodes)
+            {
+                if (!node.IsActive)
+                    deactiveNodes.Add(node);
+            }
+
+            var types = new NodeType[deactiveNodes.Count];
+            var typeNum = System.Enum.GetNames(typeof(NodeType)).Length;
+            for (int i = 0; i < deactiveNodes.Count / typeNum; i++)
+            {
+                for (int j = 0; j < typeNum; j++)
+                    types[i * typeNum + j] = (NodeType)j;
+            }
+            for (int i = 0; i < types.Length % typeNum; i++)
+                types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
+
+            for (int i = 0; i < deactiveNodes.Count; i++)
+            {
+                isAnyNodeSpawn = true;
+                Vector2Int point = deactiveNodes[i].Point;
+                LeanPool.Despawn(deactiveNodes[i]);
+                SpawnNode(point.x, point.y, types[i]);
+            }
+            if (isAnyNodeSpawn)
+                CalculateResult();
+        }
+
 #if UNITY_EDITOR
-        async void Update()
+        void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
-                await CalculateResultAsync();
+                CalculateResult();
         }
 #endif
 
@@ -167,6 +259,56 @@ namespace TmUnity.Node
                 }
             }
         }
+        EliminateInfo CheckResult(List<ANode> resultNode, List<ANode> unpairNode)
+        {
+            var eliminateInfo = new EliminateInfo();
+            var type = resultNode[0].Type;
+            DomainEvents.Raise<OnComboPlus>(new OnComboPlus());
+            foreach (var o in resultNode)
+            {
+                unpairNode[unpairNode.IndexOf(o)] = null;
+                o.Eliminate();
+                switch (type)
+                {
+                    case NodeType.NORMAL:
+                        eliminateInfo.NormalAtk += (o as NormalNode).Atk;
+                        break;
+                    case NodeType.CHARGE:
+                        eliminateInfo.ChargeAtk += (o as ChargeNode).BasicAtk;
+                        eliminateInfo.ChargeNum += 1;
+                        break;
+                    case NodeType.ENERGY:
+                        eliminateInfo.EnergyTime += (o as EnergyNode).TimePlus;
+                        break;
+                    case NodeType.DEFENSE:
+                        eliminateInfo.Def += (o as DefenseNode).Def;
+                        break;
+                    case NodeType.CHEST:
+                        var node = (o as ChestNode);
+                        switch (node.ChestType)
+                        {
+
+                            case ChestType.ATK_UP:
+                                eliminateInfo.NormalAtk += node.Attr.AtkUp;
+                                break;
+                            case ChestType.CHARGE_COUNT_PLUS:
+                                eliminateInfo.ChargeNum += node.Attr.ChargeCount;
+                                break;
+                            case ChestType.DEF_UP:
+                                eliminateInfo.Def += node.Attr.DefUp;
+                                break;
+                            case ChestType.ENERGY_UP:
+                                eliminateInfo.EnergyTime += node.Attr.EnergyUp;
+                                break;
+                            case ChestType.HP_RECOVER:
+                                eliminateInfo.HPRecover += node.Attr.HPRecover;
+                                break;
+                        }
+                        break;
+                }
+            }
+            return eliminateInfo;
+        }
 
         async Task CheckAllResultAsync()
         {
@@ -184,32 +326,8 @@ namespace TmUnity.Node
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
                 {
-                    var type = resultNode[0].Type;
-                    DomainEvents.Raise<OnComboPlus>(new OnComboPlus());
-                    foreach (var o in resultNode)
-                    {
-                        unpairNode[unpairNode.IndexOf(o)] = null;
-                        o.Eliminate();
-                        switch (type)
-                        {
-                            case NodeType.NORMAL:
-                                //(o as NormalNode)
-                                Debug.Log("NORMAL CLEAR");
-                                break;
-                            case NodeType.CHARGE:
-                                Debug.Log("CHARGE CLEAR");
-                                break;
-                            case NodeType.ENERGY:
-                                Debug.Log("ENERGY CLEAR");
-                                break;
-                            case NodeType.DEFENSE:
-                                Debug.Log("DEFENSE CLEAR");
-                                break;
-                            case NodeType.CHEST:
-                                Debug.Log("CHEST CLEAR");
-                                break;
-                        }
-                    }
+                    var eliminateInfo = CheckResult(resultNode, unpairNode);
+                    DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(eliminateInfo));
                     await Task.Delay(200);
                 }
             }

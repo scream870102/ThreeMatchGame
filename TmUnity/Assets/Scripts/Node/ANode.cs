@@ -102,15 +102,22 @@ namespace TmUnity.Node
 
         }
 
-
+        public void ForceEndDrag()
+        {
+            var res = Controller.ScreenPosToPoint((Vector2)RectTransform.position - aspectOffset);
+            if (Point != res)
+                Controller.Swap(Point, res);
+            CorrectPos();
+            isCanMove = false;
+            isDraging = false;
+            DomainEvents.Raise<OnNodeDragEnd>(new OnNodeDragEnd(this));
+        }
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
 
         protected void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
 
         protected Vector2 ToAnchoredPosition() => new Vector2(point.x * Size.x, -point.y * Size.y);
-
-
 
         public void CheckResult(ref List<ANode> founds)
         {
@@ -132,14 +139,6 @@ namespace TmUnity.Node
             nextPoint.x = Point.x;
             nextPoint.y = Point.y + 1;
             CheckNextNode(nextPoint, ref founds);
-
-            // #if UNITY_EDITOR
-            //             if (founds.Count > 1)
-            //             {
-            //                 Debug.Log(founds.Count);
-            //                 founds.ForEach(node => Debug.Log($"{this.name} find {node.name}"));
-            //             }
-            // #endif
             return;
         }
 

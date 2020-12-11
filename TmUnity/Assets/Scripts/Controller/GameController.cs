@@ -8,26 +8,34 @@ namespace TmUnity.Game
 {
     class GameController : MonoBehaviour
     {
-        [ReadOnly] [SerializeField] NodeController nodeController;
-        [SerializeField] PlayerAttr attrs;
-        [ReadOnly] [SerializeField] GameStats stats;
+        [ReadOnly] [SerializeField] NodeController nodeController = null;
+        [SerializeField] PlayerAttr attrs = null;
+        [SerializeField] Enemy enemy = null;
+        [ReadOnly] [SerializeField] GameStats stats = null;
+#if UNITY_EDITOR
         [ReadOnly] [SerializeField] GS state = default(GS);
+#endif
         WaitState waitState = null;
         ActionState actionState = null;
         AnimateState animateState = null;
         EnemyState enemyState = null;
         GameState currentState = null;
         bool isStateInit = false;
+        bool isChargeReady = false;
+        public float NextRoundDuration => stats.NextRoundDuration;
+        public int TotalDamage => stats.CurrentAtk + stats.CurrentChargeAtk;
+        public float ExtraRoundDuration = 0f;
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
 
         void Start()
         {
             nodeController.InitBoard();
+            nodeController.CalculateResult();
             InitStats();
             waitState = new WaitState(this);
             actionState = new ActionState(this);
             animateState = new AnimateState(this);
-            enemyState = new EnemyState(this);
+            enemyState = new EnemyState(enemy, this);
             NewState(GS.WAIT);
         }
 
@@ -66,7 +74,6 @@ namespace TmUnity.Game
                     DomainEvents.Raise(new OnGameStateChange(GS.ANIMATE));
                     break;
                 case GS.ENEMY:
-                    ResetStats();
                     currentState = enemyState;
                     state = GS.ENEMY;
                     DomainEvents.Raise(new OnGameStateChange(GS.ENEMY));
@@ -76,70 +83,78 @@ namespace TmUnity.Game
 
         void OnEnable()
         {
-            DomainEvents.Register<OnNormalNodeEliminate>(HandleNormalNodeEliminate);
-            DomainEvents.Register<OnChargeNodeEliminate>(HandleChargeNodeEliminate);
-            DomainEvents.Register<OnEnergyNodeEliminate>(HandleEnergyNodeEliminate);
-            DomainEvents.Register<OnDefenseNodeEliminate>(HandleDefenseNodeEliminate);
-            DomainEvents.Register<OnChestNodeEliminate>(HandleChestNodeEliminate);
             DomainEvents.Register<OnComboPlus>(HandleComboPlus);
+            DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
+            DomainEvents.Register<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
         }
 
         void OnDisable()
         {
-            DomainEvents.UnRegister<OnNormalNodeEliminate>(HandleNormalNodeEliminate);
-            DomainEvents.UnRegister<OnChargeNodeEliminate>(HandleChargeNodeEliminate);
-            DomainEvents.UnRegister<OnEnergyNodeEliminate>(HandleEnergyNodeEliminate);
-            DomainEvents.UnRegister<OnDefenseNodeEliminate>(HandleDefenseNodeEliminate);
-            DomainEvents.UnRegister<OnChestNodeEliminate>(HandleChestNodeEliminate);
             DomainEvents.UnRegister<OnComboPlus>(HandleComboPlus);
+            DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
+            DomainEvents.UnRegister<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
         }
 
         void InitStats()
         {
+            stats = new GameStats();
             DomainEvents.Raise<OnPlayerStatsInit>(new OnPlayerStatsInit(attrs.HP, attrs.MaxChargeNum));
+            StartNewRound();
             stats.CurrentChargeAtk = attrs.BasicChargeAtk;
             stats.CurrentChargeCount = 0;
             stats.CurrentHP = attrs.HP;
-            stats.CurrentCombo = 0;
+            isChargeReady = false;
+            ExtraRoundDuration = 0f;
         }
 
-        void ResetStats()
-        {
-            stats.CurrentCombo = 0;
-        }
-
-
-        void HandleNormalNodeEliminate(OnNormalNodeEliminate e)
-        {
-            stats.CurrentAtk = e.Atk + attrs.BasicNormalAtk;
-        }
-
-        void HandleChargeNodeEliminate(OnChargeNodeEliminate e)
-        {
-            stats.CurrentChargeAtk += e.Atk;
-            stats.CurrentChargeCount += e.Num;
-        }
-
-        void HandleEnergyNodeEliminate(OnEnergyNodeEliminate e)
-        {
-            stats.NextRoundDuration = attrs.BasicEnergy + e.Time;
-        }
-
-        void HandleDefenseNodeEliminate(OnDefenseNodeEliminate e)
-        {
-            stats.CurrentDef = attrs.BasicDef + e.Def;
-        }
-
-        void HandleChestNodeEliminate(OnChestNodeEliminate e)
-        {
-            stats.CurrentAtk += e.Atk;
-            stats.CurrentDef += e.Def;
-            stats.NextRoundDuration += e.Energy;
-            stats.CurrentHP += e.HPRecover;
-            stats.CurrentChargeCount += e.ChargeNodeReduce;
-        }
 
         void HandleComboPlus(OnComboPlus e) => stats.CurrentCombo += 1;
+
+        void HandleNodeEliminate(OnNodeEliminate e)
+        {
+            stats.CurrentAtk += e.Info.NormalAtk;
+            stats.CurrentChargeAtk += e.Info.ChargeAtk;
+            stats.CurrentChargeCount += e.Info.ChargeNum;
+            ExtraRoundDuration += e.Info.EnergyTime;
+            //stats.NextRoundDuration += e.Info.EnergyTime;
+            stats.CurrentDef += e.Info.Def;
+            stats.CurrentHP += e.Info.HPRecover;
+            if (stats.CurrentChargeCount > attrs.MaxChargeNum)
+            {
+                isChargeReady = true;
+                stats.CurrentChargeAtk += attrs.MaxChargeAtk;
+            }
+        }
+
+        void HandlePlayerBeAttacked(OnPlayerBeAttacked e)
+        {
+            Debug.Log($"Atk:{e.Atk} Def:{stats.CurrentDef} HP:{stats.CurrentHP}");
+            var damage = e.Atk - stats.CurrentDef;
+            damage = damage <= 0 ? 0 : damage;
+            stats.CurrentHP -= damage;
+        }
+
+        public void StartNewRound()
+        {
+            if (isChargeReady)
+            {
+                isChargeReady = false;
+                stats.CurrentChargeAtk = attrs.BasicChargeAtk;
+                stats.CurrentChargeCount = 0;
+            }
+            stats.CurrentAtk = attrs.BasicNormalAtk;
+            stats.CurrentDef = attrs.BasicDef;
+            stats.CurrentCombo = 0;
+            DomainEvents.Raise<OnComboChange>(new OnComboChange(stats.CurrentCombo, true));
+        }
+
+        public void CaculateNextRoundDuration()
+        {
+            stats.NextRoundDuration = attrs.BasicEnergy + ExtraRoundDuration;
+            ExtraRoundDuration = 0f;
+            DomainEvents.Raise<OnMaxTimeSet>(new OnMaxTimeSet(stats.NextRoundDuration));
+            DomainEvents.Raise<OnRemainTimeChanged>(new OnRemainTimeChanged(stats.NextRoundDuration));
+        }
 
     }
 
@@ -148,7 +163,7 @@ namespace TmUnity.Game
     {
         public WaitState(GameController controller) : base(controller) => DomainEvents.Register<OnNodeDragBegin>(HandleNodeDragBegin);
         ~WaitState() => DomainEvents.UnRegister<OnNodeDragBegin>(HandleNodeDragBegin);
-        public override void Init() { }
+        public override void Init() => controller.CaculateNextRoundDuration();
 
         public override void Tick() { }
 
@@ -159,11 +174,28 @@ namespace TmUnity.Game
 
     class ActionState : GameState
     {
-        public ActionState(GameController controller) : base(controller) => DomainEvents.Register<OnNodeDragEnd>(HandleNodeDragEnd);
+        ScaledTimer timer = null;
+        public ActionState(GameController controller) : base(controller)
+        {
+            timer = new ScaledTimer();
+            DomainEvents.Register<OnNodeDragEnd>(HandleNodeDragEnd);
+        }
         ~ActionState() => DomainEvents.UnRegister<OnNodeDragEnd>(HandleNodeDragEnd);
-        public override void Init() { }
+        public override void Init()
+        {
+            controller.StartNewRound();
+            timer.Reset(controller.NextRoundDuration);
+        }
 
-        public override void Tick() { }
+        public override void Tick()
+        {
+            DomainEvents.Raise<OnRemainTimeChanged>(new OnRemainTimeChanged(timer.Remain));
+            if (timer.IsFinished)
+            {
+                DomainEvents.Raise<OnForceEndDrag>(new OnForceEndDrag());
+                controller.NewState(GS.ANIMATE);
+            }
+        }
 
         public override void End() { }
         void HandleNodeDragEnd(OnNodeDragEnd e) => controller.NewState(GS.ANIMATE);
@@ -175,6 +207,7 @@ namespace TmUnity.Game
         public async override void Init()
         {
             await controller.CalculateResultAsync();
+            DomainEvents.Raise<OnEnemyBeAttacked>(new OnEnemyBeAttacked(controller.TotalDamage));
             controller.NewState(GS.ENEMY);
         }
 
@@ -185,16 +218,24 @@ namespace TmUnity.Game
 
     class EnemyState : GameState
     {
-        public EnemyState(GameController controller) : base(controller) { }
+        Enemy enemy = null;
+        public EnemyState(Enemy enemy, GameController controller) : base(controller) => this.enemy = enemy;
         public override void Init() { }
 
-        public override void Tick()
+        async public override void Tick()
         {
-            if (Input.GetKeyDown(KeyCode.C))
-                controller.NewState(GS.WAIT);
+            await enemy.AttackAsync();
+            var extraTime = enemy.GetNextAttack();
+            controller.ExtraRoundDuration += extraTime;
+            controller.NewState(GS.WAIT);
+            // if (Input.GetKeyDown(KeyCode.C))
+            //     controller.NewState(GS.WAIT);
         }
 
-        public override void End() { }
+        public override void End()
+        {
+
+        }
     }
 
     abstract class GameState : IState

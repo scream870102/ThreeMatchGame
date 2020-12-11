@@ -11,12 +11,15 @@ namespace TmUnity
         [SerializeField] int chargeAtk = 0;
         [SerializeField] int def = 0;
         [SerializeField] float energy = 0f;
+        [SerializeField] ChestNodeAttr chestNodeAttr = null;
         public int NormalAtk => normalAtk;
         public int ChargeAtk => chargeAtk;
         public int Def => def;
         public float Energy => energy;
+        public ChestNodeAttr ChestNodeAttr => chestNodeAttr;
 
     }
+
     [System.Serializable]
     class PlayerAttr
     {
@@ -36,7 +39,17 @@ namespace TmUnity
         public int HP => hp;
     }
 
+    [System.Serializable]
+    class AttackAttr
+    {
+        [SerializeField] int atk = 0;
+        [SerializeField] float time = 0f;
+        [SerializeField] int cd = 0;
+        public int Atk => atk;
+        public float Time => time;
+        public int CD => cd;
 
+    }
 
     [System.Serializable]
     class GameStats
@@ -53,8 +66,8 @@ namespace TmUnity
             get => currentAtk;
             set
             {
-                DomainEvents.Raise<OnAtkChanged>(new OnAtkChanged(CurrentAtk));
                 currentAtk = value;
+                DomainEvents.Raise<OnAtkChanged>(new OnAtkChanged(CurrentAtk));
             }
         }
         public int CurrentChargeAtk
@@ -62,8 +75,8 @@ namespace TmUnity
             get => currentChargeAtk;
             set
             {
-                DomainEvents.Raise<OnChargeAtkChanged>(new OnChargeAtkChanged(CurrentChargeAtk));
                 currentChargeAtk = value;
+                DomainEvents.Raise<OnChargeAtkChanged>(new OnChargeAtkChanged(CurrentChargeAtk));
             }
         }
         public int CurrentDef
@@ -71,8 +84,8 @@ namespace TmUnity
             get => currentDef;
             set
             {
-                DomainEvents.Raise<OnDefChanged>(new OnDefChanged(CurrentDef));
                 currentDef = value;
+                DomainEvents.Raise<OnDefChanged>(new OnDefChanged(CurrentDef));
             }
         }
         public float NextRoundDuration
@@ -80,8 +93,8 @@ namespace TmUnity
             get => nextRoundDuration;
             set
             {
-                DomainEvents.Raise<OnEnergyChanged>(new OnEnergyChanged(NextRoundDuration));
                 nextRoundDuration = value;
+                DomainEvents.Raise<OnEnergyChanged>(new OnEnergyChanged(NextRoundDuration));
             }
         }
         public int CurrentChargeCount
@@ -93,6 +106,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnChargeCountChange>(new OnChargeCountChange(CurrentChargeCount));
             }
         }
+        
         public int CurrentHP
         {
             get => currentHP;
@@ -100,6 +114,8 @@ namespace TmUnity
             {
                 currentHP = value;
                 DomainEvents.Raise<OnPlayerHPChanged>(new OnPlayerHPChanged(CurrentHP));
+                if (currentHP <= 0)
+                    DomainEvents.Raise<OnPlayerDead>(new OnPlayerDead());
             }
         }
         public int CurrentCombo
@@ -113,4 +129,39 @@ namespace TmUnity
         }
 
     }
+
+    class EliminateInfo
+    {
+        public int NormalAtk { get; set; } = 0;
+        public int ChargeAtk { get; set; } = 0;
+        public int ChargeNum { get; set; } = 0;
+        public float EnergyTime { get; set; } = 0f;
+        public int Def { get; set; } = 0;
+        public int HPRecover { get; set; } = 0;
+
+    }
+
+    [System.Serializable]
+    class ChestNodeAttr
+    {
+        [SerializeField] int hpRecover = 0;
+        [SerializeField] float energyUp = 0f;
+        [SerializeField] int atkUp = 0;
+        [SerializeField] int defUp = 0;
+        [SerializeField] int chargeCount = 0;
+        public int HPRecover => hpRecover;
+        public float EnergyUp => energyUp;
+        public int AtkUp => atkUp;
+        public int DefUp => defUp;
+        public int ChargeCount => chargeCount;
+        public ChestNodeAttr(int hpRecover, int energyUp, int atkUp, int defUp, int chargeCount)
+        {
+            this.hpRecover = hpRecover;
+            this.energyUp = energyUp;
+            this.atkUp = atkUp;
+            this.defUp = defUp;
+            this.chargeCount = chargeCount;
+        }
+    }
+
 }

@@ -7,8 +7,8 @@ namespace TmUnity
 {
     class UIController : MonoBehaviour
     {
-        [SerializeField] Slider bossHPSlider = null;
-        [SerializeField] Text bossHPText = null;
+        [SerializeField] Slider enemyHPSlider = null;
+        [SerializeField] Text enemyHPText = null;
         [SerializeField] Text atkText = null;
         [SerializeField] Text chargeAtkText = null;
         [SerializeField] Text defText = null;
@@ -31,6 +31,11 @@ namespace TmUnity
             DomainEvents.Register<OnChargeCountChange>(HandleChargeCountChanged);
             DomainEvents.Register<OnPlayerHPChanged>(HandlePlayerHPChanged);
             DomainEvents.Register<OnComboChange>(HandleComboChange);
+            DomainEvents.Register<OnMaxTimeSet>(HandleMaxTimeSet);
+            DomainEvents.Register<OnRemainTimeChanged>(HandleRemainTimeChanged);
+            DomainEvents.Register<OnEnemyHPChanged>(HandleEnemyHPChanged);
+            DomainEvents.Register<OnEnemyDead>(HandleEnemyDead);
+            DomainEvents.Register<OnPlayerDead>(HandlePlayerDead);
         }
 
         void OnDisable()
@@ -43,6 +48,11 @@ namespace TmUnity
             DomainEvents.UnRegister<OnChargeCountChange>(HandleChargeCountChanged);
             DomainEvents.UnRegister<OnPlayerHPChanged>(HandlePlayerHPChanged);
             DomainEvents.UnRegister<OnComboChange>(HandleComboChange);
+            DomainEvents.UnRegister<OnMaxTimeSet>(HandleMaxTimeSet);
+            DomainEvents.UnRegister<OnRemainTimeChanged>(HandleRemainTimeChanged);
+            DomainEvents.UnRegister<OnEnemyHPChanged>(HandleEnemyHPChanged);
+            DomainEvents.UnRegister<OnEnemyDead>(HandleEnemyDead);
+            DomainEvents.UnRegister<OnPlayerDead>(HandlePlayerDead);
         }
 
         void HandlePlayerStatsInit(OnPlayerStatsInit e)
@@ -61,8 +71,8 @@ namespace TmUnity
 
         void HandleEnergyChanged(OnEnergyChanged e)
         {
-            timeText.text = $"{e.NewEnergy} sec";
-            timeSlider.value = e.NewEnergy;
+            timeText.text = $"{e.NewEnergy.ToString("0.0")} sec";
+            timeSlider.maxValue = e.NewEnergy;
         }
 
         void HandleChargeCountChanged(OnChargeCountChange e)
@@ -73,18 +83,45 @@ namespace TmUnity
 
         void HandlePlayerHPChanged(OnPlayerHPChanged e)
         {
+            if (e.NewHP > maxHP)
+            {
+                maxHP = e.NewHP;
+                playerHPSlider.maxValue = maxHP;
+            }
             playerHPSlider.value = e.NewHP;
             playerHPText.text = $"{e.NewHP}/{maxHP}";
         }
 
         void HandleComboChange(OnComboChange e)
         {
-            if (e.Combos == 0)
+            if (e.Combos == 0 && !e.IsZeroDisplay)
                 return;
-            //     comboText.text = "";
-            // else
             comboText.text = $"{e.Combos} COMBOS";
         }
+
+        void HandleMaxTimeSet(OnMaxTimeSet e)
+        {
+            timeSlider.maxValue = e.MaxTime;
+            timeSlider.value = e.MaxTime;
+            timeText.text = $"{e.MaxTime.ToString("0.0")}s";
+        }
+
+        void HandleRemainTimeChanged(OnRemainTimeChanged e)
+        {
+            timeText.text = $"{e.Remain.ToString("0.0")}s";
+            timeSlider.value = e.Remain;
+        }
+
+        void HandleEnemyHPChanged(OnEnemyHPChanged e)
+        {
+            enemyHPSlider.maxValue = e.MaxHP;
+            enemyHPSlider.value = e.NewHP;
+            enemyHPText.text = $"{e.NewHP}/{e.MaxHP}";
+        }
+
+        void HandleEnemyDead(OnEnemyDead e) => enemyHPText.text = "DIE DIE DIE";
+
+        void HandlePlayerDead(OnPlayerDead e) => playerHPText.text = "DIE DIE DIE";
 
     }
 
