@@ -1,7 +1,5 @@
 ﻿//ATTEND: Implement Clamp position
 //TODO: Implement Anmation
-//TODO: Player Stats Implement
-//TODO: NodeEliminate Calculate
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +13,6 @@ namespace TmUnity.Node
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodeObjects = null;
         [SerializeField] NodeAttr attr = null;
-
         RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
@@ -58,8 +55,11 @@ namespace TmUnity.Node
         }
 
         void HandleGameStateChange(OnGameStateChange e) => IsCanMove = (e.NewState == GameState.WAIT || e.NewState == GameState.ACTION);
+
         void HandleNodeDragBegin(OnNodeDragBegin e) => currentNode = e.Node;
+
         void HandleNodeDragEnd(OnNodeDragEnd e) => currentNode = null;
+
         void HandleForceEndDrag(OnForceEndDrag e) => currentNode?.ForceEndDrag();
 
         public void InitBoard()
@@ -191,14 +191,6 @@ namespace TmUnity.Node
                 CalculateResult();
         }
 
-#if UNITY_EDITOR
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-                CalculateResult();
-        }
-#endif
-
         public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
 
         public Vector2Int ScreenPosToPoint(Vector2 pos)
@@ -207,7 +199,7 @@ namespace TmUnity.Node
             adjustedPos.y = adjustedPos.y - boardParent.anchoredPosition.y * AspectFactor.y;
             var y = boardSize.y - Mathf.RoundToInt(adjustedPos.y / adjustedNodeSize.y);
             y = y < 0 ? 0 : y;
-            return new Vector2Int(Mathf.FloorToInt(adjustedPos.x / adjustedNodeSize.x), y);
+            return new Vector2Int(Mathf.RoundToInt(adjustedPos.x / adjustedNodeSize.x), y);
         }
 
         public void Swap(Vector2Int movingNode, Vector2Int swapNode)
@@ -259,6 +251,7 @@ namespace TmUnity.Node
                 }
             }
         }
+
         EliminateInfo CheckResult(List<ANode> resultNode, List<ANode> unpairNode)
         {
             var eliminateInfo = new EliminateInfo();

@@ -8,14 +8,7 @@
         DEFENSE,
         CHEST,
     }
-    enum Direction
-    {
-        LEFT,
-        UP,
-        RIGHT,
-        DOWN,
-        NONE,
-    }
+
     enum ChestType
     {
         HP_RECOVER,
@@ -24,8 +17,6 @@
         DEF_UP,
         CHARGE_COUNT_PLUS,
     }
-
-
 
 }
 namespace TmUnity

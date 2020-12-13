@@ -25,6 +25,7 @@ namespace TmUnity.Game
         public float NextRoundDuration => stats.NextRoundDuration;
         public int TotalDamage => stats.CurrentAtk + stats.CurrentChargeAtk;
         public float ExtraRoundDuration = 0f;
+
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
 
         void Start()
@@ -116,10 +117,9 @@ namespace TmUnity.Game
             stats.CurrentChargeAtk += e.Info.ChargeAtk;
             stats.CurrentChargeCount += e.Info.ChargeNum;
             ExtraRoundDuration += e.Info.EnergyTime;
-            //stats.NextRoundDuration += e.Info.EnergyTime;
             stats.CurrentDef += e.Info.Def;
             stats.CurrentHP += e.Info.HPRecover;
-            if (stats.CurrentChargeCount > attrs.MaxChargeNum)
+            if (stats.CurrentChargeCount >= attrs.MaxChargeNum && !isChargeReady)
             {
                 isChargeReady = true;
                 stats.CurrentChargeAtk += attrs.MaxChargeAtk;
@@ -128,7 +128,6 @@ namespace TmUnity.Game
 
         void HandlePlayerBeAttacked(OnPlayerBeAttacked e)
         {
-            Debug.Log($"Atk:{e.Atk} Def:{stats.CurrentDef} HP:{stats.CurrentHP}");
             var damage = e.Atk - stats.CurrentDef;
             damage = damage <= 0 ? 0 : damage;
             stats.CurrentHP -= damage;
@@ -162,12 +161,15 @@ namespace TmUnity.Game
     class WaitState : GameState
     {
         public WaitState(GameController controller) : base(controller) => DomainEvents.Register<OnNodeDragBegin>(HandleNodeDragBegin);
+
         ~WaitState() => DomainEvents.UnRegister<OnNodeDragBegin>(HandleNodeDragBegin);
+
         public override void Init() => controller.CaculateNextRoundDuration();
 
         public override void Tick() { }
 
         public override void End() { }
+
         void HandleNodeDragBegin(OnNodeDragBegin e) => controller.NewState(GS.ACTION);
 
     }
@@ -175,12 +177,15 @@ namespace TmUnity.Game
     class ActionState : GameState
     {
         ScaledTimer timer = null;
+
         public ActionState(GameController controller) : base(controller)
         {
             timer = new ScaledTimer();
             DomainEvents.Register<OnNodeDragEnd>(HandleNodeDragEnd);
         }
+
         ~ActionState() => DomainEvents.UnRegister<OnNodeDragEnd>(HandleNodeDragEnd);
+
         public override void Init()
         {
             controller.StartNewRound();
@@ -198,12 +203,14 @@ namespace TmUnity.Game
         }
 
         public override void End() { }
+
         void HandleNodeDragEnd(OnNodeDragEnd e) => controller.NewState(GS.ANIMATE);
     }
 
     class AnimateState : GameState
     {
         public AnimateState(GameController controller) : base(controller) { }
+
         public async override void Init()
         {
             await controller.CalculateResultAsync();
@@ -219,7 +226,9 @@ namespace TmUnity.Game
     class EnemyState : GameState
     {
         Enemy enemy = null;
+
         public EnemyState(Enemy enemy, GameController controller) : base(controller) => this.enemy = enemy;
+
         public override void Init() { }
 
         async public override void Tick()
@@ -228,14 +237,9 @@ namespace TmUnity.Game
             var extraTime = enemy.GetNextAttack();
             controller.ExtraRoundDuration += extraTime;
             controller.NewState(GS.WAIT);
-            // if (Input.GetKeyDown(KeyCode.C))
-            //     controller.NewState(GS.WAIT);
         }
 
-        public override void End()
-        {
-
-        }
+        public override void End() { }
     }
 
     abstract class GameState : IState

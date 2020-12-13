@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Threading.Tasks;
 using Eccentric.Utils;
 using Eccentric;
-using System.Linq;
 namespace TmUnity
 {
     class Enemy : MonoBehaviour
@@ -11,12 +10,14 @@ namespace TmUnity
         [SerializeField] int maxHP = 0;
         [ReadOnly] [SerializeField] int currentHP = 0;
         [SerializeField] List<AAttack> attacks = new List<AAttack>();
+        [SerializeField] JackBomb jackBomb = null;
         AAttack currentAttack = null;
 
         void Start()
         {
             currentHP = maxHP;
             DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(currentHP, maxHP));
+            attacks.Add(jackBomb);
         }
 
         void OnEnable() => DomainEvents.Register<OnEnemyBeAttacked>(HandleEnemyBeAttacked);
@@ -38,12 +39,7 @@ namespace TmUnity
         public async Task AttackAsync()
         {
             if (currentAttack == null)
-            {
-                Debug.Log("No Attack Find");
                 GetNextAttack();
-                Debug.Log("HAHAHAHAHAHAHAHAHAHAHA");
-            }
-            Debug.Log($"{currentAttack.name} is attack");
             await currentAttack.AttackAsync();
             attacks.ForEach(a => a.RoundPass());
 
@@ -51,26 +47,17 @@ namespace TmUnity
 
         public float GetNextAttack()
         {
-            attacks.ForEach(action => Debug.Log($"{action.name} {action.IsReady}"));
             var readyAttacks = attacks.FindAll(a => a.IsReady);
             currentAttack = readyAttacks[Random.Range(0, readyAttacks.Count)];
-            Debug.Log($"Find {currentAttack.name}");
             return currentAttack.RoundDuration;
         }
-#if UNITY_EDITOR
-        void Update() => attacks.ForEach(a => a.bReady = a.IsReady);
-#endif
 
     }
 
     [System.Serializable]
     class AAttack
     {
-        [SerializeField] AttackAttr attrs;
-#if UNITY_EDITOR
-        public bool bReady;
-        public string name;
-#endif
+        [SerializeField] protected AttackAttr attrs = null;
         protected int remainCD = 0;
         public bool IsReady => remainCD <= 0;
         public float RoundDuration => attrs.Time;
@@ -78,8 +65,19 @@ namespace TmUnity
         public void RoundPass() => remainCD -= 1;
         public async virtual Task AttackAsync()
         {
+            await Task.CompletedTask;
             remainCD = attrs.CD + 1;
             DomainEvents.Raise<OnPlayerBeAttacked>(new OnPlayerBeAttacked(attrs.Atk));
+        }
+    }
+
+    [System.Serializable]
+    class JackBomb : AAttack
+    {
+        public async override Task AttackAsync()
+        {
+            //TODO: Play vfx here
+            await base.AttackAsync();
         }
     }
 }

@@ -18,6 +18,8 @@ namespace TmUnity.Node
         protected Vector2 oldPos { get; set; } = default(Vector2);
         protected Vector2 halfSize => Size / 2;
         protected Vector2 aspectOffset { get; private set; } = default(Vector2);
+        protected bool isDraging { get; private set; } = false;
+        protected bool isCanMove { get; private set; } = false;
         public RectTransform RectTransform { get; private set; } = null;
         public NodeController Controller { get; private set; } = null;
         public Vector2Int Point
@@ -33,8 +35,6 @@ namespace TmUnity.Node
         public NodeType Type { get; private set; } = default(NodeType);
         public Vector2 Size { get; private set; } = default(Vector2);
         public bool IsActive { get; private set; } = true;
-        protected bool isCanMove { get; private set; } = false;
-        protected bool isDraging { get; private set; } = false;
 
         protected virtual void Awake()
         {
@@ -61,11 +61,7 @@ namespace TmUnity.Node
             gameObject.SetActive(false);
         }
 
-
-        public virtual void OnPointerDown(PointerEventData e)
-        {
-            isCanMove = Controller.IsCanMove;
-        }
+        public virtual void OnPointerDown(PointerEventData e) => isCanMove = Controller.IsCanMove;
 
         public virtual void OnBeginDrag(PointerEventData e)
         {
@@ -81,15 +77,12 @@ namespace TmUnity.Node
             if (!isCanMove || !isDraging)
                 return;
             RectTransform.position = e.position + aspectOffset;
-            var res = Controller.ScreenPosToPoint(e.position);
+            var res = Controller.ScreenPosToPoint(RectTransform.position);
             if (Point != res)
                 Controller.Swap(Point, res);
         }
 
-        public virtual void OnPointerUp(PointerEventData e)
-        {
-            CorrectPos();
-        }
+        public virtual void OnPointerUp(PointerEventData e) => CorrectPos();
 
         public virtual void OnEndDrag(PointerEventData e)
         {
@@ -104,7 +97,7 @@ namespace TmUnity.Node
 
         public void ForceEndDrag()
         {
-            var res = Controller.ScreenPosToPoint((Vector2)RectTransform.position - aspectOffset);
+            var res = Controller.ScreenPosToPoint((Vector2)RectTransform.position);
             if (Point != res)
                 Controller.Swap(Point, res);
             CorrectPos();
@@ -152,6 +145,7 @@ namespace TmUnity.Node
             }
         }
 
+        public Vector3 GetCenterPosition() => RectTransform.position + (Vector3)aspectOffset;
     }
 
 }

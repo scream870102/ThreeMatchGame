@@ -1,5 +1,4 @@
-﻿//TODO: ENERGY MAX VALUE CHANGE
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using Eccentric;
 using TmUnity.Node;
