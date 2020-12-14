@@ -55,7 +55,15 @@ namespace TmUnity.Node
 
         public virtual void Eliminate()
         {
-            //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position));
+            if (Type == NodeType.NORMAL || Type == NodeType.CHARGE)
+            {
+                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.ELIMINATE));
+                //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(RectTransform.position, target.position, NodeType.NORMAL, fireballVel));
+            }
+            else
+            {
+                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
+            }
             IsActive = false;
             gameObject.SetActive(false);
         }

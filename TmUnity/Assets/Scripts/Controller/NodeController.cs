@@ -11,19 +11,25 @@ namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
+        [Header("TMP")]
+        [SerializeField] float nodeFallenTime = .05f;
+        [SerializeField] float fireballVel = 1f;
+        [SerializeField] RectTransform target = null;
+        [Header("--------------------")]
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodeObjects = null;
         [SerializeField] NodeAttr attr = null;
         [SerializeField] RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
+        //Vector2 aspectOffset = default(Vector2);
         ANode currentNode = null;
         public Vector2 AspectFactor { get; private set; } = default(Vector2);
         public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
         public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
-        public RectTransform BoardParent => boardParent;
+        //public RectTransform BoardParent => boardParent;
 
         void Awake()
         {
@@ -35,8 +41,12 @@ namespace TmUnity.Node
             adjustedNodeSize = new Vector2(Screen.width / boardSize.x, Screen.width / boardSize.x);
             BoardMaxSize = new Vector2(boardSize.x * adjustedNodeSize.x, boardSize.y * adjustedNodeSize.y);
             AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
+            //aspectOffset = new Vector2(-adjustedNodeSize.x * AspectFactor.x * .5f, adjustedNodeSize.y * AspectFactor.y * .5f);
         }
-
+        // void Update()
+        // {
+        //     Debug.Log("UNITY " + Time.deltaTime);
+        // }
         void OnEnable()
         {
             DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
@@ -244,8 +254,15 @@ namespace TmUnity.Node
                     }
                     if (underNode != null)
                     {
+                        //Caculate the distance
+                        var vel = (node.RectTransform.position.y - underNode.RectTransform.position.y) / nodeFallenTime;
+                        while (node.RectTransform.position.y > underNode.RectTransform.position.y)
+                        {
+                            var newPos = node.RectTransform.position - new Vector3(0f, vel * Time.deltaTime, 0f);
+                            node.RectTransform.position = newPos;
+                            await Task.Delay((int)(Time.deltaTime * 1000f));
+                        }
                         Swap(node.Point, underNode.Point);
-                        await Task.Delay(100);
                     }
                 }
             }
@@ -263,19 +280,24 @@ namespace TmUnity.Node
                 switch (type)
                 {
                     case NodeType.NORMAL:
+                        //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(o.RectTransform.position, target.position, NodeType.NORMAL, fireballVel));
                         eliminateInfo.NormalAtk += (o as NormalNode).Atk;
                         break;
                     case NodeType.CHARGE:
+                        //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(o.RectTransform.position, target.position, NodeType.CHARGE, fireballVel));
                         eliminateInfo.ChargeAtk += (o as ChargeNode).BasicAtk;
                         eliminateInfo.ChargeNum += 1;
                         break;
                     case NodeType.ENERGY:
+                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         eliminateInfo.EnergyTime += (o as EnergyNode).TimePlus;
                         break;
                     case NodeType.DEFENSE:
+                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         eliminateInfo.Def += (o as DefenseNode).Def;
                         break;
                     case NodeType.CHEST:
+                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         var node = (o as ChestNode);
                         switch (node.ChestType)
                         {

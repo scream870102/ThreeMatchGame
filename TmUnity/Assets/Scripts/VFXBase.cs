@@ -6,10 +6,6 @@ namespace TmUnity
 {
     class VFXBase : MonoBehaviour
     {
-        ParticleSystem ptc = null;
-        void Awake() => ptc = GetComponent<ParticleSystem>();
-        void OnParticleSystemStopped() => LeanPool.Despawn(gameObject);
-        void OnEnable() => ptc.Play();
-
+        void OnAnimationEnd() => LeanPool.Despawn(gameObject);
     }
 }

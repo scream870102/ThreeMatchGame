@@ -7,16 +7,16 @@
 
 ## Memo
 //TODO:
+- 落下動畫
+- 生成動畫
 - 敵人的攻擊
 - 動畫
     - Player
         - **Node Eliminate** MagicBarrier
-        - **Be Hit** IceShatter
         - **Hit** FireBall2
         - **Heal** HolyExplosion
         - **Dead** FireCast
     - Enemy
-        - **Be Hit** Poison Cast
         - **Hit**
             - Poison Claw
             - Ice Cast
@@ -30,6 +30,9 @@
 
 
 //FIXME:
+- Player Star Animation Pos Calc
+- Node Eliminate Animation
+- Node Attack Anim
 
 //ATTEND:
 - ScreenToPos Anchored is at top left.

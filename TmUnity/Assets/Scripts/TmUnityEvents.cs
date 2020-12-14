@@ -1,5 +1,6 @@
 ﻿using Eccentric;
 using UnityEngine;
+using TmUnity.Node;
 namespace TmUnity.Node
 {
     class OnNodeDragBegin : IDomainEvent
@@ -148,7 +149,27 @@ namespace TmUnity
     class OnVFXPlay : IDomainEvent
     {
         public Vector3 Pos { get; private set; } = default(Vector3);
-        public OnVFXPlay(Vector3 pos) => Pos = pos;
+        public VFXType Type { get; private set; } = default(VFXType);
+        public OnVFXPlay(Vector3 pos, VFXType type)
+        {
+            Pos = pos;
+            Type = type;
+        }
+    }
+
+    class OnPlayerAtkAnim : IDomainEvent
+    {
+        public Vector3 StartPos { get; private set; } = default(Vector3);
+        public Vector3 EndPos { get; private set; } = default(Vector3);
+        public NodeType Type { get; private set; } = default(NodeType);
+        public float Vel { get; private set; } = 0f;
+        public OnPlayerAtkAnim(Vector3 startPos, Vector3 endPos, NodeType type, float vel)
+        {
+            StartPos = startPos;
+            EndPos = endPos;
+            Type = type;
+            Vel = vel;
+        }
     }
 
 }

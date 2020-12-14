@@ -28,4 +28,10 @@ namespace TmUnity
         ANIMATE,
         ENEMY,
     }
+
+    enum VFXType
+    {
+        ELIMINATE,
+        HEAL,
+    }
 }
