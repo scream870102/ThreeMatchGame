@@ -15,8 +15,7 @@ namespace TmUnity.Node
     abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
     {
         Vector2Int point = default(Vector2Int);
-        protected Vector2 oldPos { get; set; } = default(Vector2);
-        protected Vector2 halfSize => Size / 2;
+        protected Vector2 halfSize => Size / 2f;
         protected Vector2 aspectOffset { get; private set; } = default(Vector2);
         protected bool isDraging { get; private set; } = false;
         protected bool isCanMove { get; private set; } = false;
@@ -39,14 +38,13 @@ namespace TmUnity.Node
         protected virtual void Awake()
         {
             RectTransform = GetComponent<RectTransform>();
-            Size = RectTransform.sizeDelta;
 #if UNITY_EDITOR
             Controller = GameObject.FindObjectOfType<NodeController>();
 #endif
         }
-
         protected virtual void Init(Vector2Int point, NodeType type, NodeController controller)
         {
+            Size = RectTransform.sizeDelta;
             Point = point;
             Type = type;
             Controller = controller;
@@ -57,6 +55,7 @@ namespace TmUnity.Node
 
         public virtual void Eliminate()
         {
+            //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position));
             IsActive = false;
             gameObject.SetActive(false);
         }
@@ -68,7 +67,6 @@ namespace TmUnity.Node
             if (!isCanMove)
                 return;
             isDraging = true;
-            oldPos = RectTransform.anchoredPosition;
             DomainEvents.Raise<OnNodeDragBegin>(new OnNodeDragBegin(this));
         }
 

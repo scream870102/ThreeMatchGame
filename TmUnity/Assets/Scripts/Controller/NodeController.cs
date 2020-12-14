@@ -1,5 +1,6 @@
 ﻿//ATTEND: Implement Clamp position
 //TODO: Implement Anmation
+//TODO:  Size is independent with resolution
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,7 @@ namespace TmUnity.Node
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodeObjects = null;
         [SerializeField] NodeAttr attr = null;
-        RectTransform boardParent = null;
+        [SerializeField] RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
         ANode currentNode = null;
@@ -22,20 +23,18 @@ namespace TmUnity.Node
         public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
+        public RectTransform BoardParent => boardParent;
 
         void Awake()
         {
             //Get Ref
-            boardParent = GameObject.Find("BoardParent").GetComponent<RectTransform>();
-            refRes = boardParent.parent.GetComponent<CanvasScaler>().referenceResolution;
+            refRes = boardParent.parent.parent.GetComponent<CanvasScaler>().referenceResolution;
             //Set var
-            AspectFactor = new Vector2(Screen.width / refRes.x, Screen.height / refRes.y);
-            var tmpNode = Instantiate(nodeObjects[0]).GetComponent<ANode>();
-            var nodeSize = tmpNode.Size;
-            adjustedNodeSize = new Vector2(nodeSize.x * AspectFactor.x, nodeSize.y * AspectFactor.y);
-            BoardMaxSize = new Vector2(boardSize.x * tmpNode.Size.x, boardSize.y * tmpNode.Size.y);
+            //ATTEND: The aspect of board is constant so just calcluate the apsectFactor by width  cause screen height will change
+            AspectFactor = new Vector2(Screen.width / refRes.x, Screen.width / refRes.x);
+            adjustedNodeSize = new Vector2(Screen.width / boardSize.x, Screen.width / boardSize.x);
+            BoardMaxSize = new Vector2(boardSize.x * adjustedNodeSize.x, boardSize.y * adjustedNodeSize.y);
             AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
-            Destroy(tmpNode.gameObject);
         }
 
         void OnEnable()
@@ -196,7 +195,7 @@ namespace TmUnity.Node
         public Vector2Int ScreenPosToPoint(Vector2 pos)
         {
             var adjustedPos = pos;
-            adjustedPos.y = adjustedPos.y - boardParent.anchoredPosition.y * AspectFactor.y;
+            adjustedPos.y = adjustedPos.y - boardParent.position.y;
             var y = boardSize.y - Mathf.RoundToInt(adjustedPos.y / adjustedNodeSize.y);
             y = y < 0 ? 0 : y;
             return new Vector2Int(Mathf.RoundToInt(adjustedPos.x / adjustedNodeSize.x), y);

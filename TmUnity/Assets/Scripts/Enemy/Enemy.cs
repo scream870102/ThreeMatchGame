@@ -58,6 +58,7 @@ namespace TmUnity
     class AAttack
     {
         [SerializeField] protected AttackAttr attrs = null;
+        [SerializeField] protected AnimationClip animationClip = null;
         protected int remainCD = 0;
         public bool IsReady => remainCD <= 0;
         public float RoundDuration => attrs.Time;

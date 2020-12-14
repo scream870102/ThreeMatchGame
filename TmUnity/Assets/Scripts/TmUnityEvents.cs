@@ -1,4 +1,5 @@
 ﻿using Eccentric;
+using UnityEngine;
 namespace TmUnity.Node
 {
     class OnNodeDragBegin : IDomainEvent
@@ -142,6 +143,12 @@ namespace TmUnity
     class OnEnemyDead : IDomainEvent
     {
         public OnEnemyDead() { }
+    }
+
+    class OnVFXPlay : IDomainEvent
+    {
+        public Vector3 Pos { get; private set; } = default(Vector3);
+        public OnVFXPlay(Vector3 pos) => Pos = pos;
     }
 
 }
