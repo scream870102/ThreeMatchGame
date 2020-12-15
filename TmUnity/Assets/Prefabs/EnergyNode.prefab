@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6241235636754513402}
   - component: {fileID: 2069340846644840714}
   - component: {fileID: 9172824712382178375}
+  - component: {fileID: 114342380823728606}
   - component: {fileID: 5357018901112837271}
   m_Layer: 5
   m_Name: EnergyNode
@@ -86,6 +87,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e0df141ff33d93438a7dac682d024a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114342380823728606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700915402394592427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 906faebaebe634846aebbb9accf31137, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RectTransform: {fileID: 0}
 --- !u!114 &5357018901112837271
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -9,11 +9,13 @@ using UnityEngine.UI;
 using Eccentric;
 using System.Collections.Generic;
 using Lean.Pool;
+using System.Threading.Tasks;
 
 namespace TmUnity.Node
 {
     abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
     {
+        Image image = null;
         Vector2Int point = default(Vector2Int);
         protected Vector2 halfSize => Size / 2f;
         protected Vector2 aspectOffset { get; private set; } = default(Vector2);
@@ -38,6 +40,7 @@ namespace TmUnity.Node
         protected virtual void Awake()
         {
             RectTransform = GetComponent<RectTransform>();
+            image = GetComponent<Image>();
 #if UNITY_EDITOR
             Controller = GameObject.FindObjectOfType<NodeController>();
 #endif
@@ -53,17 +56,8 @@ namespace TmUnity.Node
             gameObject.SetActive(true);
         }
 
-        public virtual void Eliminate()
+        public virtual void Eliminate(bool isFXPlay = true)
         {
-            if (Type == NodeType.NORMAL || Type == NodeType.CHARGE)
-            {
-                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.ELIMINATE));
-                //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(RectTransform.position, target.position, NodeType.NORMAL, fireballVel));
-            }
-            else
-            {
-                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
-            }
             IsActive = false;
             gameObject.SetActive(false);
         }

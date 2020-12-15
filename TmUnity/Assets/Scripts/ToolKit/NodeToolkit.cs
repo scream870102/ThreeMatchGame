@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using TmUnity.Node;
-namespace TmUnity.ForEditor
+namespace TmUnity.Editor
 {
     class NodeToolkit : MonoBehaviour
     {
@@ -24,7 +24,7 @@ namespace TmUnity.ForEditor
         }
     }
     [CustomEditor(typeof(NodeToolkit))]
-    class NodeToolkitEditor : Editor
+    class NodeToolkitEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

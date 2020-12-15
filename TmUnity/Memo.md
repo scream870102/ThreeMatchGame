@@ -4,11 +4,10 @@
 - [Pixel Effects Pack](https://codemanu.itch.io/pixelart-effect-pack)  
 - [Free Pixel Art FX Spirit X Witch](https://ppeldo.itch.io/2d-pixel-art-game-spellmagic-fx)  
 - [Fire fx](https://xyezawr.itch.io/free)  
+- [Skeleton Seeker](https://eddies-workshop.itch.io/seeker)
 
 ## Memo
 //TODO:
-- 落下動畫
-- 生成動畫
 - 敵人的攻擊
 - 動畫
     - Player
@@ -21,12 +20,12 @@
             - Poison Claw
             - Ice Cast
         - **Dead** Explosion 3
-
-
+- 生成動畫
 - UI美術調整
 - 主選單
 - 頁面跳轉
 - 最高分系統
+
 
 
 //FIXME:
@@ -38,10 +37,13 @@
 - ScreenToPos Anchored is at top left.
 - The event position get from drag event should add AspectOffset to make the anchor at the middle of picture.
 - Ancored Postion is local base.Position is global based.
+- Can't Transfer to a new state at state init method
 
 
 //FIN:
 - 頁面的基準(添滿寬度為主 高度不跟著變動)
 - 定位調整
+- 落下動畫
+- 沒消珠的BUG
 
 

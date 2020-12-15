@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4319627780332389006}
   - component: {fileID: 3228191517140468648}
   - component: {fileID: 7960212641320513291}
+  - component: {fileID: 114724154845295638}
   - component: {fileID: 3226178940875488660}
   m_Layer: 5
   m_Name: ChargeNode
@@ -86,6 +87,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafa1f5ad4a72a241a42d544eb814367, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114724154845295638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598898789053058337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 906faebaebe634846aebbb9accf31137, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RectTransform: {fileID: 0}
 --- !u!114 &3226178940875488660
 MonoBehaviour:
   m_ObjectHideFlags: 0

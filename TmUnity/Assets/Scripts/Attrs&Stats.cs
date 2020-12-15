@@ -106,7 +106,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnChargeCountChange>(new OnChargeCountChange(CurrentChargeCount));
             }
         }
-        
+
         public int CurrentHP
         {
             get => currentHP;
@@ -162,6 +162,13 @@ namespace TmUnity
             this.defUp = defUp;
             this.chargeCount = chargeCount;
         }
+    }
+
+    [System.Serializable]
+    class GameResultStats
+    {
+        public int MaxDamage = 0;
+        public float ElapsedTime = 0f;
     }
 
 }

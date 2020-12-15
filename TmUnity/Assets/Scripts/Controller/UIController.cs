@@ -18,6 +18,10 @@ namespace TmUnity
         [SerializeField] Slider playerHPSlider = null;
         [SerializeField] Text playerHPText = null;
         [SerializeField] Text comboText = null;
+        [SerializeField] RawImage gameEndImage = null;
+        [SerializeField] Text resultText = null;
+        [SerializeField] Text recordText = null;
+        [SerializeField] Text pressText = null;
         int maxHP = 0;
         int maxChargeNum = 0;
         void OnEnable()
@@ -35,6 +39,8 @@ namespace TmUnity
             DomainEvents.Register<OnEnemyHPChanged>(HandleEnemyHPChanged);
             DomainEvents.Register<OnEnemyDead>(HandleEnemyDead);
             DomainEvents.Register<OnPlayerDead>(HandlePlayerDead);
+            DomainEvents.Register<OnGameStart>(HandleGameStart);
+            DomainEvents.Register<OnGameEnd>(HandleGameEnd);
         }
 
         void OnDisable()
@@ -52,6 +58,28 @@ namespace TmUnity
             DomainEvents.UnRegister<OnEnemyHPChanged>(HandleEnemyHPChanged);
             DomainEvents.UnRegister<OnEnemyDead>(HandleEnemyDead);
             DomainEvents.UnRegister<OnPlayerDead>(HandlePlayerDead);
+            DomainEvents.UnRegister<OnGameStart>(HandleGameStart);
+            DomainEvents.UnRegister<OnGameEnd>(HandleGameEnd);
+        }
+
+
+        void HandleGameStart(OnGameStart e)
+        {
+            gameEndImage.gameObject.SetActive(true);
+            resultText.text = "Game Start";
+            pressText.text = "Touch Screen to Start";
+            recordText.text = "Do your best to get best point";
+        }
+
+        void HandleGameEnd(OnGameEnd e)
+        {
+            gameEndImage.gameObject.SetActive(true);
+            if (e.IsWin)
+                resultText.text = "WIN WIN WIN";
+            else
+                resultText.text = "GAME OVER";
+            pressText.text = "Touch Screen to Restart";
+            recordText.text = $"Max Damage : {e.Result.MaxDamage} \n Elapsed Time : {e.Result.ElapsedTime.ToString("0.00")}s";
         }
 
         void HandlePlayerStatsInit(OnPlayerStatsInit e)
@@ -60,6 +88,7 @@ namespace TmUnity
             maxChargeNum = e.MaxChargeNum;
             chargeSlider.maxValue = maxChargeNum;
             playerHPSlider.maxValue = maxHP;
+            gameEndImage.gameObject.SetActive(false);
         }
 
         void HandleAtkChanged(OnAtkChanged e) => atkText.text = $"ATK:{e.NewAtk}";

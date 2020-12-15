@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿//ATTEND: Can't Transfer to a new state at state init method
+using UnityEngine;
 using TmUnity.Node;
 using Eccentric.Utils;
 using Eccentric;
 using GS = TmUnity.GameState;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 namespace TmUnity.Game
 {
     class GameController : MonoBehaviour
@@ -12,9 +14,13 @@ namespace TmUnity.Game
         [SerializeField] PlayerAttr attrs = null;
         [SerializeField] Enemy enemy = null;
         [ReadOnly] [SerializeField] GameStats stats = null;
+        [ReadOnly] [SerializeField] GameResultStats resultStats = null;
 #if UNITY_EDITOR
         [ReadOnly] [SerializeField] GS state = default(GS);
 #endif
+        float elapsedTime = 0f;
+        StartState startState = null;
+        EndState endState = null;
         WaitState waitState = null;
         ActionState actionState = null;
         AnimateState animateState = null;
@@ -24,24 +30,27 @@ namespace TmUnity.Game
         bool isChargeReady = false;
         public float NextRoundDuration => stats.NextRoundDuration;
         public int TotalDamage => stats.CurrentAtk + stats.CurrentChargeAtk;
-        public float ExtraRoundDuration = 0f;
+        public float ExtraRoundDuration { get; set; } = 0f;
 
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
 
         void Start()
         {
             nodeController.InitBoard();
-            nodeController.CalculateResult();
-            InitStats();
+            nodeController.CalculateResultWithoutAnim();
+            startState = new StartState(this);
+            endState = new EndState(this);
             waitState = new WaitState(this);
             actionState = new ActionState(this);
             animateState = new AnimateState(this);
             enemyState = new EnemyState(enemy, this);
-            NewState(GS.WAIT);
+
+            NewState(GS.START);
         }
 
         void Update()
         {
+            elapsedTime += Time.deltaTime;
             if (currentState != null && !isStateInit)
             {
                 currentState.Init();
@@ -59,6 +68,16 @@ namespace TmUnity.Game
             isStateInit = false;
             switch (nextState)
             {
+                case GS.START:
+                    currentState = startState;
+                    state = GS.START;
+                    DomainEvents.Raise(new OnGameStateChange(GS.START));
+                    break;
+                case GS.END:
+                    currentState = endState;
+                    state = GS.END;
+                    DomainEvents.Raise(new OnGameStateChange(GS.END));
+                    break;
                 case GS.WAIT:
                     currentState = waitState;
                     state = GS.WAIT;
@@ -87,6 +106,8 @@ namespace TmUnity.Game
             DomainEvents.Register<OnComboPlus>(HandleComboPlus);
             DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.Register<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
+            DomainEvents.Register<OnPlayerDead>(HandlePlayerDead);
+            DomainEvents.Register<OnEnemyDead>(HandleEnemyDead);
         }
 
         void OnDisable()
@@ -94,11 +115,14 @@ namespace TmUnity.Game
             DomainEvents.UnRegister<OnComboPlus>(HandleComboPlus);
             DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.UnRegister<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
+            DomainEvents.UnRegister<OnPlayerDead>(HandlePlayerDead);
+            DomainEvents.UnRegister<OnEnemyDead>(HandleEnemyDead);
         }
 
-        void InitStats()
+        public void InitStats()
         {
             stats = new GameStats();
+            resultStats = new GameResultStats();
             DomainEvents.Raise<OnPlayerStatsInit>(new OnPlayerStatsInit(attrs.HP, attrs.MaxChargeNum));
             StartNewRound();
             stats.CurrentChargeAtk = attrs.BasicChargeAtk;
@@ -106,6 +130,7 @@ namespace TmUnity.Game
             stats.CurrentHP = attrs.HP;
             isChargeReady = false;
             ExtraRoundDuration = 0f;
+            elapsedTime = 0f;
         }
 
 
@@ -133,6 +158,17 @@ namespace TmUnity.Game
             stats.CurrentHP -= damage;
         }
 
+        void HandlePlayerDead(OnPlayerDead e) => EndGame(false);
+
+        void HandleEnemyDead(OnEnemyDead e) => EndGame(true);
+
+        void EndGame(bool isWin)
+        {
+            NewState(GS.END);
+            resultStats.ElapsedTime = elapsedTime;
+            DomainEvents.Raise<OnGameEnd>(new OnGameEnd(resultStats, isWin));
+        }
+
         public void StartNewRound()
         {
             if (isChargeReady)
@@ -155,8 +191,48 @@ namespace TmUnity.Game
             DomainEvents.Raise<OnRemainTimeChanged>(new OnRemainTimeChanged(stats.NextRoundDuration));
         }
 
+        public void UpdateMaxDamage()
+        {
+            if (TotalDamage > resultStats.MaxDamage)
+                resultStats.MaxDamage = TotalDamage;
+        }
+
     }
 
+    class StartState : GameState
+    {
+        public StartState(GameController controller) : base(controller) { }
+
+        public override void Init()
+        {
+            DomainEvents.Raise<OnGameStart>(new OnGameStart());
+        }
+        public override void Tick()
+        {
+            if (Input.anyKeyDown)
+                controller.NewState(GS.WAIT);
+        }
+
+        public override void End()
+        {
+            controller.InitStats();
+        }
+
+    }
+
+    class EndState : GameState
+    {
+        public EndState(GameController controller) : base(controller) { }
+
+        public override void Init() { }
+        public override void Tick()
+        {
+            if (Input.anyKeyDown)
+                SceneManager.LoadScene(0);
+        }
+
+        public override void End() { }
+    }
 
     class WaitState : GameState
     {
@@ -209,16 +285,23 @@ namespace TmUnity.Game
 
     class AnimateState : GameState
     {
+        bool isFin = false;
         public AnimateState(GameController controller) : base(controller) { }
 
         public async override void Init()
         {
+            isFin = false;
             await controller.CalculateResultAsync();
+            controller.UpdateMaxDamage();
             DomainEvents.Raise<OnEnemyBeAttacked>(new OnEnemyBeAttacked(controller.TotalDamage));
-            controller.NewState(GS.ENEMY);
+            isFin = true;
         }
 
-        public override void Tick() { }
+        public override void Tick()
+        {
+            if (isFin)
+                controller.NewState(GS.ENEMY);
+        }
 
         public override void End() { }
     }
@@ -229,17 +312,22 @@ namespace TmUnity.Game
 
         public EnemyState(Enemy enemy, GameController controller) : base(controller) => this.enemy = enemy;
 
-        public override void Init() { }
-
-        async public override void Tick()
+        public override void Init()
         {
-            await enemy.AttackAsync();
+            DomainEvents.Register<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            enemy.Attack();
+        }
+
+        public override void Tick() { }
+
+        public override void End() => DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+
+        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
+        {
             var extraTime = enemy.GetNextAttack();
             controller.ExtraRoundDuration += extraTime;
             controller.NewState(GS.WAIT);
         }
-
-        public override void End() { }
     }
 
     abstract class GameState : IState

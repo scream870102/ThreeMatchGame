@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3105442974914755208}
   - component: {fileID: 292123571631106406}
   - component: {fileID: 6601722853707953396}
+  - component: {fileID: 114269299967167630}
   - component: {fileID: 3032887744361020264}
   m_Layer: 5
   m_Name: ChestNode
@@ -86,6 +87,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68fcbbe396da6224583e6a3086dc50c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114269299967167630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354577406348454814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 906faebaebe634846aebbb9accf31137, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RectTransform: {fileID: 0}
 --- !u!114 &3032887744361020264
 MonoBehaviour:
   m_ObjectHideFlags: 0

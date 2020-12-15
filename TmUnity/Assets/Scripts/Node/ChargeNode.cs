@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-
+using Eccentric;
+using System.Threading.Tasks;
 namespace TmUnity.Node
 {
     class ChargeNode : ANode
@@ -9,6 +10,16 @@ namespace TmUnity.Node
         {
             base.Init(point, type, controller);
             BasicAtk = basicAtk;
+        }
+
+        public override void Eliminate(bool isFXPlay = true)
+        {
+            if (isFXPlay)
+            {
+                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.ELIMINATE));
+                DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(RectTransform.position - (Vector3)aspectOffset, NodeType.CHARGE));
+            }
+            base.Eliminate();
         }
     }
 }

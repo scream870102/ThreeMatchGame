@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Eccentric;
 using Lean.Pool;
-using System.Threading.Tasks;
 namespace TmUnity
 {
     class FXController : MonoBehaviour
@@ -13,6 +12,8 @@ namespace TmUnity
         [SerializeField] GameObject starPrefab = null;
         [SerializeField] GameObject holyPrefab = null;
         [SerializeField] RectTransform gamePanel = null;
+        [SerializeField] RectTransform enemyRectTF = null;
+        [SerializeField] float fireballVel = 0f;
 
         void HandleVFXPlay(OnVFXPlay e)
         {
@@ -27,7 +28,15 @@ namespace TmUnity
             }
         }
 
-        async void HandlePlayerAtkAnim(OnPlayerAtkAnim e) => await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(e.StartPos, e.EndPos, starColors[(int)e.Type], e.Vel);
+#if UNITY_EDITOR
+        async void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+                await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(new Vector3(55.7f, 454.1f, 0f), enemyRectTF.position, starColors[0], fireballVel);
+        }
+#endif
+
+        async void HandlePlayerAtkAnim(OnPlayerAtkAnim e) => await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(e.StartPos, enemyRectTF.position, starColors[(int)e.Type], fireballVel);
 
         void OnEnable()
         {

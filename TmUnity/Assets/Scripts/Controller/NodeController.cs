@@ -11,42 +11,32 @@ namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
-        [Header("TMP")]
         [SerializeField] float nodeFallenTime = .05f;
-        [SerializeField] float fireballVel = 1f;
-        [SerializeField] RectTransform target = null;
-        [Header("--------------------")]
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodeObjects = null;
         [SerializeField] NodeAttr attr = null;
         [SerializeField] RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
         Vector2 adjustedNodeSize = default(Vector2);
-        //Vector2 aspectOffset = default(Vector2);
         ANode currentNode = null;
         public Vector2 AspectFactor { get; private set; } = default(Vector2);
         public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
         public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
-        //public RectTransform BoardParent => boardParent;
 
         void Awake()
         {
             //Get Ref
             refRes = boardParent.parent.parent.GetComponent<CanvasScaler>().referenceResolution;
             //Set var
-            //ATTEND: The aspect of board is constant so just calcluate the apsectFactor by width  cause screen height will change
+            //NOTE: The aspect of board is constant so just calcluate the apsectFactor by width  cause screen height will change
             AspectFactor = new Vector2(Screen.width / refRes.x, Screen.width / refRes.x);
             adjustedNodeSize = new Vector2(Screen.width / boardSize.x, Screen.width / boardSize.x);
             BoardMaxSize = new Vector2(boardSize.x * adjustedNodeSize.x, boardSize.y * adjustedNodeSize.y);
             AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
-            //aspectOffset = new Vector2(-adjustedNodeSize.x * AspectFactor.x * .5f, adjustedNodeSize.y * AspectFactor.y * .5f);
         }
-        // void Update()
-        // {
-        //     Debug.Log("UNITY " + Time.deltaTime);
-        // }
+
         void OnEnable()
         {
             DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
@@ -123,7 +113,7 @@ namespace TmUnity.Node
                 await CalculateResultAsync();
         }
 
-        public void CalculateResult()
+        public void CalculateResultWithoutAnim()
         {
             // Add all node into unpairnode
             var unpairNode = new List<ANode>();
@@ -138,7 +128,7 @@ namespace TmUnity.Node
                 var resultNode = new List<ANode>();
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
-                    CheckResult(resultNode, unpairNode);
+                    CheckResult(resultNode, unpairNode, false);
             }
 
             //form left bottom
@@ -197,7 +187,7 @@ namespace TmUnity.Node
                 SpawnNode(point.x, point.y, types[i]);
             }
             if (isAnyNodeSpawn)
-                CalculateResult();
+                CalculateResultWithoutAnim();
         }
 
         public bool IsPointOutOfBoard(Vector2Int point) => (point.x >= boardSize.x) || (point.y >= boardSize.y) || (point.x < 0) || (point.y < 0);
@@ -268,7 +258,7 @@ namespace TmUnity.Node
             }
         }
 
-        EliminateInfo CheckResult(List<ANode> resultNode, List<ANode> unpairNode)
+        EliminateInfo CheckResult(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
         {
             var eliminateInfo = new EliminateInfo();
             var type = resultNode[0].Type;
@@ -276,28 +266,23 @@ namespace TmUnity.Node
             foreach (var o in resultNode)
             {
                 unpairNode[unpairNode.IndexOf(o)] = null;
-                o.Eliminate();
+                o.Eliminate(isFXPlay);
                 switch (type)
                 {
                     case NodeType.NORMAL:
-                        //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(o.RectTransform.position, target.position, NodeType.NORMAL, fireballVel));
                         eliminateInfo.NormalAtk += (o as NormalNode).Atk;
                         break;
                     case NodeType.CHARGE:
-                        //DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(o.RectTransform.position, target.position, NodeType.CHARGE, fireballVel));
                         eliminateInfo.ChargeAtk += (o as ChargeNode).BasicAtk;
                         eliminateInfo.ChargeNum += 1;
                         break;
                     case NodeType.ENERGY:
-                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         eliminateInfo.EnergyTime += (o as EnergyNode).TimePlus;
                         break;
                     case NodeType.DEFENSE:
-                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         eliminateInfo.Def += (o as DefenseNode).Def;
                         break;
                     case NodeType.CHEST:
-                        //DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(o.RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
                         var node = (o as ChestNode);
                         switch (node.ChestType)
                         {
@@ -373,7 +358,7 @@ namespace TmUnity.Node
                 Vector2Int point = deactiveNodes[i].Point;
                 LeanPool.Despawn(deactiveNodes[i]);
                 SpawnNode(point.x, point.y, types[i]);
-                await Task.Delay(50);
+                await Task.Delay(25);
             }
             return isAnyNodeSpawn;
         }

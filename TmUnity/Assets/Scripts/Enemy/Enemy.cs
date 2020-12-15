@@ -3,21 +3,25 @@ using UnityEngine;
 using System.Threading.Tasks;
 using Eccentric.Utils;
 using Eccentric;
+using System.Linq;
 namespace TmUnity
 {
     class Enemy : MonoBehaviour
     {
-        [SerializeField] int maxHP = 0;
         [ReadOnly] [SerializeField] int currentHP = 0;
-        [SerializeField] List<AAttack> attacks = new List<AAttack>();
-        [SerializeField] JackBomb jackBomb = null;
-        AAttack currentAttack = null;
+        [SerializeField] List<Attack> attacks = new List<Attack>();
+        [SerializeField] int maxHP = 0;
+        Attack currentAttack = null;
+        Animator anim = null;
 
+        void Awake() => anim = GetComponent<Animator>();
         void Start()
         {
             currentHP = maxHP;
             DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(currentHP, maxHP));
-            attacks.Add(jackBomb);
+            anim.SetBool("IsDead", false);
+            anim.SetTrigger("Spawn");
+            attacks.ForEach(a => a.Init(anim));
         }
 
         void OnEnable() => DomainEvents.Register<OnEnemyBeAttacked>(HandleEnemyBeAttacked);
@@ -26,22 +30,24 @@ namespace TmUnity
 
         void HandleEnemyBeAttacked(OnEnemyBeAttacked e)
         {
+            anim.SetTrigger("Damage");
             currentHP -= e.Atk;
             if (currentHP <= 0)
             {
                 DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(0, maxHP));
                 DomainEvents.Raise<OnEnemyDead>(new OnEnemyDead());
+                anim.SetBool("IsDead", true);
                 return;
             }
             DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(currentHP, maxHP));
         }
 
-        public async Task AttackAsync()
+        public void Attack()
         {
             if (currentAttack == null)
                 GetNextAttack();
-            await currentAttack.AttackAsync();
-            attacks.ForEach(a => a.RoundPass());
+            currentAttack.PlayAttackAnim();
+
 
         }
 
@@ -52,33 +58,33 @@ namespace TmUnity
             return currentAttack.RoundDuration;
         }
 
+        void AttackAnimFinAE()
+        {
+            currentAttack.AttackAnimFinAE();
+            attacks.ForEach(a => a.RoundPass());
+            DomainEvents.Raise<OnEnemyAtkAnimFin>(new OnEnemyAtkAnimFin());
+        }
+
     }
 
     [System.Serializable]
-    class AAttack
+    class Attack
     {
+        [SerializeField] string animTrigger = "";
         [SerializeField] protected AttackAttr attrs = null;
-        [SerializeField] protected AnimationClip animationClip = null;
         protected int remainCD = 0;
+        protected Animator anim { get; private set; } = null;
         public bool IsReady => remainCD <= 0;
         public float RoundDuration => attrs.Time;
-
         public void RoundPass() => remainCD -= 1;
-        public async virtual Task AttackAsync()
+        public void Init(Animator anim) => this.anim = anim;
+        public void PlayAttackAnim() => anim.SetTrigger(animTrigger);
+
+        public void AttackAnimFinAE()
         {
-            await Task.CompletedTask;
             remainCD = attrs.CD + 1;
             DomainEvents.Raise<OnPlayerBeAttacked>(new OnPlayerBeAttacked(attrs.Atk));
         }
-    }
 
-    [System.Serializable]
-    class JackBomb : AAttack
-    {
-        public async override Task AttackAsync()
-        {
-            //TODO: Play vfx here
-            await base.AttackAsync();
-        }
     }
 }

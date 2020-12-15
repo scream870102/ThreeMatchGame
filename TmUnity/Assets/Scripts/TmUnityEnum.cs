@@ -23,6 +23,8 @@ namespace TmUnity
 {
     enum GameState
     {
+        START,
+        END,
         WAIT,
         ACTION,
         ANIMATE,

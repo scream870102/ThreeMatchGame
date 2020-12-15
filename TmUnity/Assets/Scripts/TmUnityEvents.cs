@@ -21,10 +21,7 @@ namespace TmUnity.Node
         public OnNodeEliminate(EliminateInfo info) => Info = info;
     }
 
-    class OnComboPlus : IDomainEvent
-    {
-        public OnComboPlus() { }
-    }
+    class OnComboPlus : IDomainEvent { }
     //FOR UI-------------------------------------------------------------------------------
     class OnAtkChanged : IDomainEvent
     {
@@ -67,10 +64,7 @@ namespace TmUnity.Node
         }
     }
 
-    class OnForceEndDrag : IDomainEvent
-    {
-        public OnForceEndDrag() { }
-    }
+    class OnForceEndDrag : IDomainEvent { }
 
 
 }
@@ -84,10 +78,7 @@ namespace TmUnity
         public OnGameStateChange(GameState newState) => NewState = newState;
     }
 
-    class OnPlayerDead : IDomainEvent
-    {
-        public OnPlayerDead() { }
-    }
+    class OnPlayerDead : IDomainEvent { }
 
     class OnPlayerBeAttacked : IDomainEvent
     {
@@ -141,10 +132,7 @@ namespace TmUnity
         public OnEnemyBeAttacked(int atk) => Atk = atk;
     }
 
-    class OnEnemyDead : IDomainEvent
-    {
-        public OnEnemyDead() { }
-    }
+    class OnEnemyDead : IDomainEvent { }
 
     class OnVFXPlay : IDomainEvent
     {
@@ -160,16 +148,26 @@ namespace TmUnity
     class OnPlayerAtkAnim : IDomainEvent
     {
         public Vector3 StartPos { get; private set; } = default(Vector3);
-        public Vector3 EndPos { get; private set; } = default(Vector3);
         public NodeType Type { get; private set; } = default(NodeType);
-        public float Vel { get; private set; } = 0f;
-        public OnPlayerAtkAnim(Vector3 startPos, Vector3 endPos, NodeType type, float vel)
+        public OnPlayerAtkAnim(Vector3 startPos, NodeType type)
         {
             StartPos = startPos;
-            EndPos = endPos;
             Type = type;
-            Vel = vel;
         }
     }
 
+    class OnEnemyAtkAnimFin : IDomainEvent { }
+
+    class OnGameStart : IDomainEvent { }
+    
+    class OnGameEnd : IDomainEvent
+    {
+        public GameResultStats Result { get; private set; } = null;
+        public bool IsWin { get; private set; } = false;
+        public OnGameEnd(GameResultStats result, bool isWin)
+        {
+            Result = result;
+            IsWin = isWin;
+        }
+    }
 }
