@@ -36,7 +36,6 @@ namespace TmUnity.Node
             DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
             DomainEvents.Register<OnNodeDragBegin>(HandleNodeDragBegin);
             DomainEvents.Register<OnNodeDragEnd>(HandleNodeDragEnd);
-            DomainEvents.Register<OnForceEndDrag>(HandleForceEndDrag);
         }
 
         void OnDisable()
@@ -44,7 +43,6 @@ namespace TmUnity.Node
             DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
             DomainEvents.UnRegister<OnNodeDragBegin>(HandleNodeDragBegin);
             DomainEvents.UnRegister<OnNodeDragEnd>(HandleNodeDragEnd);
-            DomainEvents.UnRegister<OnForceEndDrag>(HandleForceEndDrag);
         }
 
         void HandleGameStateChange(OnGameStateChange e) => IsCanMove = (e.NewState == GameState.WAIT || e.NewState == GameState.ACTION);
@@ -53,7 +51,7 @@ namespace TmUnity.Node
 
         void HandleNodeDragEnd(OnNodeDragEnd e) => currentNode = null;
 
-        void HandleForceEndDrag(OnForceEndDrag e) => currentNode?.ForceEndDrag();
+        public void ForceEndDrag() => currentNode?.ForceEndDrag();
 
         public void InitBoard()
         {
@@ -277,7 +275,6 @@ namespace TmUnity.Node
         {
             var eliminateInfo = new EliminateInfo();
             var type = resultNode[0].Type;
-            DomainEvents.Raise<OnComboPlus>(new OnComboPlus());
             foreach (var o in resultNode)
             {
                 unpairNode[unpairNode.IndexOf(o)] = null;

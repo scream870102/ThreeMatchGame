@@ -24,43 +24,7 @@ namespace TmUnity
         [SerializeField] Text pressText = null;
         int maxHP = 0;
         int maxChargeNum = 0;
-        void OnEnable()
-        {
-            DomainEvents.Register<OnPlayerStatsInit>(HandlePlayerStatsInit);
-            DomainEvents.Register<OnAtkChanged>(HandleAtkChanged);
-            DomainEvents.Register<OnChargeAtkChanged>(HandleChargeAtkChanged);
-            DomainEvents.Register<OnDefChanged>(HandleDefChanged);
-            DomainEvents.Register<OnEnergyChanged>(HandleEnergyChanged);
-            DomainEvents.Register<OnChargeCountChange>(HandleChargeCountChanged);
-            DomainEvents.Register<OnPlayerHPChanged>(HandlePlayerHPChanged);
-            DomainEvents.Register<OnComboChange>(HandleComboChange);
-            DomainEvents.Register<OnMaxTimeSet>(HandleMaxTimeSet);
-            DomainEvents.Register<OnRemainTimeChanged>(HandleRemainTimeChanged);
-            DomainEvents.Register<OnEnemyHPChanged>(HandleEnemyHPChanged);
-            DomainEvents.Register<OnEnemyDead>(HandleEnemyDead);
-            DomainEvents.Register<OnPlayerDead>(HandlePlayerDead);
-            DomainEvents.Register<OnGameStart>(HandleGameStart);
-            DomainEvents.Register<OnGameEnd>(HandleGameEnd);
-        }
 
-        void OnDisable()
-        {
-            DomainEvents.UnRegister<OnPlayerStatsInit>(HandlePlayerStatsInit);
-            DomainEvents.UnRegister<OnAtkChanged>(HandleAtkChanged);
-            DomainEvents.UnRegister<OnChargeAtkChanged>(HandleChargeAtkChanged);
-            DomainEvents.UnRegister<OnDefChanged>(HandleDefChanged);
-            DomainEvents.UnRegister<OnEnergyChanged>(HandleEnergyChanged);
-            DomainEvents.UnRegister<OnChargeCountChange>(HandleChargeCountChanged);
-            DomainEvents.UnRegister<OnPlayerHPChanged>(HandlePlayerHPChanged);
-            DomainEvents.UnRegister<OnComboChange>(HandleComboChange);
-            DomainEvents.UnRegister<OnMaxTimeSet>(HandleMaxTimeSet);
-            DomainEvents.UnRegister<OnRemainTimeChanged>(HandleRemainTimeChanged);
-            DomainEvents.UnRegister<OnEnemyHPChanged>(HandleEnemyHPChanged);
-            DomainEvents.UnRegister<OnEnemyDead>(HandleEnemyDead);
-            DomainEvents.UnRegister<OnPlayerDead>(HandlePlayerDead);
-            DomainEvents.UnRegister<OnGameStart>(HandleGameStart);
-            DomainEvents.UnRegister<OnGameEnd>(HandleGameEnd);
-        }
 
 
         void HandleGameStart(OnGameStart e)
@@ -75,7 +39,7 @@ namespace TmUnity
         {
             gameEndImage.gameObject.SetActive(true);
             if (e.IsWin)
-                resultText.text = "WIN WIN WIN";
+                resultText.text = "WIN WIN WIND";
             else
                 resultText.text = "GAME OVER";
             pressText.text = "Touch Screen to Restart";
@@ -120,12 +84,7 @@ namespace TmUnity
             playerHPText.text = $"{e.NewHP}/{maxHP}";
         }
 
-        void HandleComboChange(OnComboChange e)
-        {
-            if (e.Combos == 0 && !e.IsZeroDisplay)
-                return;
-            comboText.text = $"{e.Combos} COMBOS";
-        }
+        void HandleComboChange(OnComboChange e) => comboText.text = $"{e.Combos} COMBOS";
 
         void HandleMaxTimeSet(OnMaxTimeSet e)
         {
@@ -147,9 +106,39 @@ namespace TmUnity
             enemyHPText.text = $"{e.NewHP}/{e.MaxHP}";
         }
 
-        void HandleEnemyDead(OnEnemyDead e) => enemyHPText.text = "DIE DIE DIE";
+        void OnEnable()
+        {
+            DomainEvents.Register<OnPlayerStatsInit>(HandlePlayerStatsInit);
+            DomainEvents.Register<OnAtkChanged>(HandleAtkChanged);
+            DomainEvents.Register<OnChargeAtkChanged>(HandleChargeAtkChanged);
+            DomainEvents.Register<OnDefChanged>(HandleDefChanged);
+            DomainEvents.Register<OnEnergyChanged>(HandleEnergyChanged);
+            DomainEvents.Register<OnChargeCountChange>(HandleChargeCountChanged);
+            DomainEvents.Register<OnPlayerHPChanged>(HandlePlayerHPChanged);
+            DomainEvents.Register<OnComboChange>(HandleComboChange);
+            DomainEvents.Register<OnMaxTimeSet>(HandleMaxTimeSet);
+            DomainEvents.Register<OnRemainTimeChanged>(HandleRemainTimeChanged);
+            DomainEvents.Register<OnEnemyHPChanged>(HandleEnemyHPChanged);
+            DomainEvents.Register<OnGameStart>(HandleGameStart);
+            DomainEvents.Register<OnGameEnd>(HandleGameEnd);
+        }
 
-        void HandlePlayerDead(OnPlayerDead e) => playerHPText.text = "DIE DIE DIE";
+        void OnDisable()
+        {
+            DomainEvents.UnRegister<OnPlayerStatsInit>(HandlePlayerStatsInit);
+            DomainEvents.UnRegister<OnAtkChanged>(HandleAtkChanged);
+            DomainEvents.UnRegister<OnChargeAtkChanged>(HandleChargeAtkChanged);
+            DomainEvents.UnRegister<OnDefChanged>(HandleDefChanged);
+            DomainEvents.UnRegister<OnEnergyChanged>(HandleEnergyChanged);
+            DomainEvents.UnRegister<OnChargeCountChange>(HandleChargeCountChanged);
+            DomainEvents.UnRegister<OnPlayerHPChanged>(HandlePlayerHPChanged);
+            DomainEvents.UnRegister<OnComboChange>(HandleComboChange);
+            DomainEvents.UnRegister<OnMaxTimeSet>(HandleMaxTimeSet);
+            DomainEvents.UnRegister<OnRemainTimeChanged>(HandleRemainTimeChanged);
+            DomainEvents.UnRegister<OnEnemyHPChanged>(HandleEnemyHPChanged);
+            DomainEvents.UnRegister<OnGameStart>(HandleGameStart);
+            DomainEvents.UnRegister<OnGameEnd>(HandleGameEnd);
+        }
 
     }
 

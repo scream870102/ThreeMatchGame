@@ -343,7 +343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fcc8edf5eedbe04c93f114142f653a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodeController: {fileID: 0}
+  state: 0
   attrs:
     basicNormalAtk: 100
     basicChargeAtk: 5
@@ -364,7 +364,6 @@ MonoBehaviour:
   resultStats:
     MaxDamage: 0
     ElapsedTime: 0
-  state: 0
 --- !u!4 &137702330
 Transform:
   m_ObjectHideFlags: 0
@@ -2986,13 +2985,13 @@ MonoBehaviour:
   attacks:
   - animTrigger: PoisonClaw
     attrs:
-      atk: 1000
-      time: 10
+      atk: 10000
+      time: 33
       cd: 0
   - animTrigger: IceCast
     attrs:
-      atk: 20
-      time: 10
+      atk: 1
+      time: 46
       cd: 0
   maxHP: 10000
 --- !u!114 &1734788087

@@ -33,15 +33,9 @@ namespace TmUnity.Node
         public NodeType Type { get; private set; } = default(NodeType);
         public bool IsActive { get; private set; } = true;
 
-        void Awake()
-        {
-            RectTransform = GetComponent<RectTransform>();
-#if UNITY_EDITOR
-            controller = GameObject.FindObjectOfType<NodeController>();
-#endif
-        }
+        void Awake() => RectTransform = GetComponent<RectTransform>();
 
-        protected virtual void Init(Vector2Int point, NodeType type, NodeController controller)
+        virtual protected void Init(Vector2Int point, NodeType type, NodeController controller)
         {
             size = RectTransform.sizeDelta;
             Point = point;
@@ -51,6 +45,8 @@ namespace TmUnity.Node
             IsActive = true;
             gameObject.SetActive(true);
         }
+        
+        protected Vector3 GetCenterPos() => RectTransform.position - (Vector3)aspectOffset;
 
         public void OnPointerDown(PointerEventData e) => isCanMove = controller.IsCanMove;
 
@@ -85,27 +81,11 @@ namespace TmUnity.Node
 
         }
 
-        public virtual void Eliminate(bool isFXPlay = true)
+        virtual public  void Eliminate(bool isFXPlay = true)
         {
             IsActive = false;
             gameObject.SetActive(false);
         }
-
-        void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
-
-        Vector2 ToAnchoredPosition() => new Vector2(point.x * size.x, -point.y * size.y);
-
-        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
-        {
-            if (!controller.IsPointOutOfBoard(nextPoint))
-            {
-                var nextNode = controller.ActiveNodes[nextPoint.x, nextPoint.y];
-                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
-                    nextNode.CheckResult(ref founds);
-            }
-        }
-
-        protected Vector3 GetCenterPos() => RectTransform.position - (Vector3)aspectOffset;
 
         public void ForceEndDrag()
         {
@@ -140,7 +120,20 @@ namespace TmUnity.Node
             nextPoint.x = Point.x;
             nextPoint.y = Point.y + 1;
             CheckNextNode(nextPoint, ref founds);
-            return;
+        }
+
+        void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
+
+        Vector2 ToAnchoredPosition() => new Vector2(point.x * size.x, -point.y * size.y);
+
+        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
+        {
+            if (!controller.IsPointOutOfBoard(nextPoint))
+            {
+                var nextNode = controller.ActiveNodes[nextPoint.x, nextPoint.y];
+                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
+                    nextNode.CheckResult(ref founds);
+            }
         }
 
     }

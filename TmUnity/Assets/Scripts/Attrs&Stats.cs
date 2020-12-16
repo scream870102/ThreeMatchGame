@@ -2,7 +2,8 @@
 using Eccentric.Utils;
 using Eccentric;
 using TmUnity.Node;
-namespace TmUnity
+
+namespace TmUnity.Node
 {
     [System.Serializable]
     class NodeAttr
@@ -19,6 +20,33 @@ namespace TmUnity
         public ChestNodeAttr ChestNodeAttr => chestNodeAttr;
 
     }
+
+    [System.Serializable]
+    class ChestNodeAttr
+    {
+        [SerializeField] int hpRecover = 0;
+        [SerializeField] float energyUp = 0f;
+        [SerializeField] int atkUp = 0;
+        [SerializeField] int defUp = 0;
+        [SerializeField] int chargeCount = 0;
+        public int HPRecover => hpRecover;
+        public float EnergyUp => energyUp;
+        public int AtkUp => atkUp;
+        public int DefUp => defUp;
+        public int ChargeCount => chargeCount;
+        public ChestNodeAttr(int hpRecover, int energyUp, int atkUp, int defUp, int chargeCount)
+        {
+            this.hpRecover = hpRecover;
+            this.energyUp = energyUp;
+            this.atkUp = atkUp;
+            this.defUp = defUp;
+            this.chargeCount = chargeCount;
+        }
+    }
+}
+
+namespace TmUnity
+{
 
     [System.Serializable]
     class PlayerAttr
@@ -70,6 +98,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnAtkChanged>(new OnAtkChanged(CurrentAtk));
             }
         }
+
         public int CurrentChargeAtk
         {
             get => currentChargeAtk;
@@ -79,6 +108,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnChargeAtkChanged>(new OnChargeAtkChanged(CurrentChargeAtk));
             }
         }
+
         public int CurrentDef
         {
             get => currentDef;
@@ -88,6 +118,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnDefChanged>(new OnDefChanged(CurrentDef));
             }
         }
+
         public float NextRoundDuration
         {
             get => nextRoundDuration;
@@ -97,6 +128,7 @@ namespace TmUnity
                 DomainEvents.Raise<OnEnergyChanged>(new OnEnergyChanged(NextRoundDuration));
             }
         }
+
         public int CurrentChargeCount
         {
             get => currentChargeCount;
@@ -118,6 +150,7 @@ namespace TmUnity
                     DomainEvents.Raise<OnPlayerDead>(new OnPlayerDead());
             }
         }
+
         public int CurrentCombo
         {
             get => currentCombo;
@@ -139,29 +172,6 @@ namespace TmUnity
         public int Def { get; set; } = 0;
         public int HPRecover { get; set; } = 0;
 
-    }
-
-    [System.Serializable]
-    class ChestNodeAttr
-    {
-        [SerializeField] int hpRecover = 0;
-        [SerializeField] float energyUp = 0f;
-        [SerializeField] int atkUp = 0;
-        [SerializeField] int defUp = 0;
-        [SerializeField] int chargeCount = 0;
-        public int HPRecover => hpRecover;
-        public float EnergyUp => energyUp;
-        public int AtkUp => atkUp;
-        public int DefUp => defUp;
-        public int ChargeCount => chargeCount;
-        public ChestNodeAttr(int hpRecover, int energyUp, int atkUp, int defUp, int chargeCount)
-        {
-            this.hpRecover = hpRecover;
-            this.energyUp = energyUp;
-            this.atkUp = atkUp;
-            this.defUp = defUp;
-            this.chargeCount = chargeCount;
-        }
     }
 
     [System.Serializable]

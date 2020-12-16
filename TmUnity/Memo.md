@@ -32,6 +32,7 @@
 - Player Star Animation Pos Calc
 - Node Eliminate Animation
 - Node Attack Anim
+- if add new node shape is square will keep the same result
 
 //ATTEND:
 - ScreenToPos Anchored is at top left.
