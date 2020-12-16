@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Eccentric;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace TmUnity.Node
 {
@@ -45,7 +47,7 @@ namespace TmUnity.Node
             IsActive = true;
             gameObject.SetActive(true);
         }
-        
+
         protected Vector3 GetCenterPos() => RectTransform.position - (Vector3)aspectOffset;
 
         public void OnPointerDown(PointerEventData e) => isCanMove = controller.IsCanMove;
@@ -62,9 +64,12 @@ namespace TmUnity.Node
         {
             if (!isCanMove || !isDraging)
                 return;
+            if (controller.IsNodeSwaping)
+                return;
             RectTransform.position = e.position + aspectOffset;
             var res = controller.ScreenPosToPoint(RectTransform.position);
-            if (Point != res)
+            var offset = res - Point;
+            if (Point != res && (Mathf.Abs(offset.x) <= 1 && Mathf.Abs(offset.y) <= 1))
                 controller.Swap(Point, res);
         }
 
@@ -81,7 +86,7 @@ namespace TmUnity.Node
 
         }
 
-        virtual public  void Eliminate(bool isFXPlay = true)
+        virtual public void Eliminate(bool isFXPlay = true)
         {
             IsActive = false;
             gameObject.SetActive(false);
@@ -99,6 +104,40 @@ namespace TmUnity.Node
         }
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
+
+        async public Task MoveToPointAsync(Vector2Int newPoint)
+        {
+
+            var controlPoints = new List<Vector3>();
+            controlPoints.Add(controller.PointToAnchoredPos(Point));
+            // find direction first 
+            bool isHori = newPoint.y == Point.y;
+            // if is hori move  
+            if (isHori)
+            {
+                var yOffset = (newPoint.x - Point.x) * .3f;
+                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x, Point.y + yOffset)));
+                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x, newPoint.x + yOffset)));
+            }
+            // if is vert move
+            else
+            {
+                var xOffset = (newPoint.y - Point.y) * .3f;
+                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x + xOffset, Point.y)));
+                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x + xOffset, newPoint.y)));
+            }
+            controlPoints.Add(controller.PointToAnchoredPos(newPoint));
+            //Get Bezier
+            Bezier b = new Bezier(controlPoints.ToArray(), .1f);
+            var points = b.GetCurvesPoint();
+            //Move in 0.1sec
+            foreach (var p in points)
+            {
+                RectTransform.anchoredPosition = p;
+                await Task.Delay(1);
+            }
+            Point = newPoint;
+        }
 
         public void CheckResult(ref List<ANode> founds)
         {

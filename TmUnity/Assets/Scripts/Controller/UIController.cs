@@ -22,10 +22,17 @@ namespace TmUnity
         [SerializeField] Text resultText = null;
         [SerializeField] Text recordText = null;
         [SerializeField] Text pressText = null;
+        [SerializeField] Text totalDamageText = null;
         int maxHP = 0;
         int maxChargeNum = 0;
+        Animation comboAnim = null;
+        Animation totalDamageAnim = null;
 
-
+        void Start()
+        {
+            comboAnim = comboText.GetComponent<Animation>();
+            totalDamageAnim = totalDamageText.GetComponent<Animation>();
+        }
 
         void HandleGameStart(OnGameStart e)
         {
@@ -55,11 +62,25 @@ namespace TmUnity
             gameEndImage.gameObject.SetActive(false);
         }
 
-        void HandleAtkChanged(OnAtkChanged e) => atkText.text = $"ATK:{e.NewAtk}";
+        void HandleAtkChanged(OnAtkChanged e)
+        {
+            atkText.text = $"+{e.NewAtk}";
+            UpdateTotalDamageText();
+        }
 
-        void HandleChargeAtkChanged(OnChargeAtkChanged e) => chargeAtkText.text = $"CHA:{e.NewAtk}";
+        void HandleChargeAtkChanged(OnChargeAtkChanged e)
+        {
+            chargeAtkText.text = $"+{e.NewAtk}";
+            UpdateTotalDamageText();
+        }
 
-        void HandleDefChanged(OnDefChanged e) => defText.text = $"DEF:{e.NewDef}";
+        void UpdateTotalDamageText()
+        {
+            totalDamageText.text = (int.Parse(atkText.text) + int.Parse(chargeAtkText.text)).ToString();
+            totalDamageAnim.Play(PlayMode.StopAll);
+        }
+
+        void HandleDefChanged(OnDefChanged e) => defText.text = $"+{e.NewDef}";
 
         void HandleEnergyChanged(OnEnergyChanged e)
         {
@@ -84,7 +105,12 @@ namespace TmUnity
             playerHPText.text = $"{e.NewHP}/{maxHP}";
         }
 
-        void HandleComboChange(OnComboChange e) => comboText.text = $"{e.Combos} COMBOS";
+        void HandleComboChange(OnComboChange e)
+        {
+            if (e.Combos != 0)
+                comboAnim.Play(PlayMode.StopAll);
+            comboText.text = $"{e.Combos} Combo";
+        }
 
         void HandleMaxTimeSet(OnMaxTimeSet e)
         {

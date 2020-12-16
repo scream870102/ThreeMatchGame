@@ -22,6 +22,7 @@ namespace TmUnity.Node
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
 
+        public bool IsNodeSwaping { get; private set; } = false;
         void Awake()
         {
             refRes = boardParent.parent.parent.GetComponent<CanvasScaler>().referenceResolution;
@@ -160,6 +161,8 @@ namespace TmUnity.Node
             return new Vector2Int(Mathf.RoundToInt(adjustedPos.x / adjustedNodeSize.x), y);
         }
 
+        public Vector2 PointToAnchoredPos(Vector2 point) => new Vector2(point.x * adjustedNodeSize.x, -point.y * adjustedNodeSize.y);
+
         public void Swap(Vector2Int movingNode, Vector2Int swapNode)
         {
             if (IsPointOutOfBoard(swapNode))
@@ -170,6 +173,20 @@ namespace TmUnity.Node
             var tmpNode = ActiveNodes[swapNode.x, swapNode.y];
             ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
             ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
+        }
+
+        async public Task SwapAsync(Vector2Int movingNode, Vector2Int swapNode)
+        {
+            if (IsPointOutOfBoard(swapNode))
+                return;
+
+            IsNodeSwaping = true;
+            ActiveNodes[movingNode.x, movingNode.y].MoveToPoint(swapNode);
+            await ActiveNodes[swapNode.x, swapNode.y].MoveToPointAsync(movingNode);
+            var tmpNode = ActiveNodes[swapNode.x, swapNode.y];
+            ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
+            ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
+            IsNodeSwaping = false;
         }
 
         //Check if there is another under current node if true move current node to under
