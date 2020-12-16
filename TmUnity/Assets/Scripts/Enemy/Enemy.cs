@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using System.Threading.Tasks;
 using Eccentric.Utils;
 using Eccentric;
-using System.Linq;
 namespace TmUnity
 {
     class Enemy : MonoBehaviour
@@ -15,6 +13,7 @@ namespace TmUnity
         Animator anim = null;
 
         void Awake() => anim = GetComponent<Animator>();
+
         void Start()
         {
             currentHP = maxHP;
@@ -30,15 +29,14 @@ namespace TmUnity
 
         void HandleEnemyBeAttacked(OnEnemyBeAttacked e)
         {
-            anim.SetTrigger("Damage");
             currentHP -= e.Atk;
             if (currentHP <= 0)
             {
                 DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(0, maxHP));
-                DomainEvents.Raise<OnEnemyDead>(new OnEnemyDead());
                 anim.SetBool("IsDead", true);
                 return;
             }
+            anim.SetTrigger("Damage");
             DomainEvents.Raise<OnEnemyHPChanged>(new OnEnemyHPChanged(currentHP, maxHP));
         }
 
@@ -47,8 +45,6 @@ namespace TmUnity
             if (currentAttack == null)
                 GetNextAttack();
             currentAttack.PlayAttackAnim();
-
-
         }
 
         public float GetNextAttack()
@@ -60,10 +56,12 @@ namespace TmUnity
 
         void AttackAnimFinAE()
         {
-            currentAttack.AttackAnimFinAE();
+            currentAttack.AttackAnimFin();
             attacks.ForEach(a => a.RoundPass());
             DomainEvents.Raise<OnEnemyAtkAnimFin>(new OnEnemyAtkAnimFin());
         }
+
+        void DeadAnimFinAE() => DomainEvents.Raise<OnEnemyDead>(new OnEnemyDead());
 
     }
 
@@ -76,11 +74,14 @@ namespace TmUnity
         protected Animator anim { get; private set; } = null;
         public bool IsReady => remainCD <= 0;
         public float RoundDuration => attrs.Time;
+
         public void RoundPass() => remainCD -= 1;
+
         public void Init(Animator anim) => this.anim = anim;
+
         public void PlayAttackAnim() => anim.SetTrigger(animTrigger);
 
-        public void AttackAnimFinAE()
+        public void AttackAnimFin()
         {
             remainCD = attrs.CD + 1;
             DomainEvents.Raise<OnPlayerBeAttacked>(new OnPlayerBeAttacked(attrs.Atk));

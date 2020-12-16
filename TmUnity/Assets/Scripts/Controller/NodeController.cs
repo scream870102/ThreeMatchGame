@@ -1,19 +1,17 @@
 ﻿//ATTEND: Implement Clamp position
-//TODO: Implement Anmation
-//TODO:  Size is independent with resolution
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Eccentric;
 using Lean.Pool;
-using System.Threading.Tasks;
 namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
         [SerializeField] float nodeFallenTime = .05f;
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
-        [SerializeField] GameObject[] nodeObjects = null;
+        [SerializeField] GameObject[] nodePrefabs = null;
         [SerializeField] NodeAttr attr = null;
         [SerializeField] RectTransform boardParent = null;
         Vector2 refRes = default(Vector2);
@@ -21,20 +19,16 @@ namespace TmUnity.Node
         ANode currentNode = null;
         public Vector2 AspectFactor { get; private set; } = default(Vector2);
         public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
-        public Vector2 AdjustedBoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
 
         void Awake()
         {
-            //Get Ref
             refRes = boardParent.parent.parent.GetComponent<CanvasScaler>().referenceResolution;
-            //Set var
             //NOTE: The aspect of board is constant so just calcluate the apsectFactor by width  cause screen height will change
             AspectFactor = new Vector2(Screen.width / refRes.x, Screen.width / refRes.x);
             adjustedNodeSize = new Vector2(Screen.width / boardSize.x, Screen.width / boardSize.x);
             BoardMaxSize = new Vector2(boardSize.x * adjustedNodeSize.x, boardSize.y * adjustedNodeSize.y);
-            AdjustedBoardMaxSize = BoardMaxSize * AspectFactor;
         }
 
         void OnEnable()
@@ -63,48 +57,15 @@ namespace TmUnity.Node
 
         public void InitBoard()
         {
-            //Init board
             ActiveNodes = new ANode[boardSize.x, boardSize.y];
             for (int i = 0; i < boardSize.x; i++)
             {
                 for (int j = 0; j < boardSize.y; j++)
-                {
-                    var type = Random.Range(0, System.Enum.GetNames(typeof(NodeType)).Length);
-                    SpawnNode(i, j, (NodeType)type);
-                }
-            }
-
-        }
-
-        void SpawnNode(int x, int y, NodeType type)
-        {
-
-            var node = LeanPool.Spawn(nodeObjects[(int)type], boardParent).GetComponent<ANode>();
-            ActiveNodes[x, y] = node;
-            var point = new Vector2Int(x, y);
-            node.name = point.ToString();
-            switch (type)
-            {
-                case NodeType.NORMAL:
-                    (node as NormalNode).Init(attr.NormalAtk, point, (NodeType)type, this);
-                    break;
-                case NodeType.CHARGE:
-                    (node as ChargeNode).Init(attr.ChargeAtk, point, (NodeType)type, this);
-                    break;
-                case NodeType.ENERGY:
-                    (node as EnergyNode).Init(attr.Energy, point, (NodeType)type, this);
-                    break;
-                case NodeType.DEFENSE:
-                    (node as DefenseNode).Init(attr.Def, point, (NodeType)type, this);
-                    break;
-                case NodeType.CHEST:
-                    var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
-                    (node as ChestNode).Init(attr.ChestNodeAttr, (ChestType)chestType, point, (NodeType)type, this);
-                    break;
+                    SpawnNode(i, j, (NodeType)Random.Range(0, System.Enum.GetNames(typeof(NodeType)).Length));
             }
         }
 
-        public async Task CalculateResultAsync()
+        async public Task CalculateResultAsync()
         {
             await CheckAllResultAsync();
             await UpdateBoardPositionAsync();
@@ -128,7 +89,7 @@ namespace TmUnity.Node
                 var resultNode = new List<ANode>();
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
-                    CheckResult(resultNode, unpairNode, false);
+                    GetEliminateResult(resultNode, unpairNode, false);
             }
 
             //form left bottom
@@ -258,7 +219,61 @@ namespace TmUnity.Node
             }
         }
 
-        EliminateInfo CheckResult(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
+        async Task CheckAllResultAsync()
+        {
+            // Add all node into unpairnode
+            var unpairNode = new List<ANode>();
+            foreach (var node in ActiveNodes)
+                unpairNode.Add(node);
+            // check all node in unpair node if is exist in result node eliminate it
+            for (int i = 0; i < unpairNode.Count; i++)
+            {
+                if (unpairNode[i] == null)
+                    continue;
+                var checkNode = unpairNode[i];
+                var resultNode = new List<ANode>();
+                checkNode.CheckResult(ref resultNode);
+                if (resultNode.Count >= 3)
+                {
+                    var eliminateInfo = GetEliminateResult(resultNode, unpairNode);
+                    DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(eliminateInfo));
+                    await Task.Delay(200);
+                }
+            }
+        }
+
+        async Task<bool> AddNewNodeAsync()
+        {
+            var isAnyNodeSpawn = false;
+            var deactiveNodes = new List<ANode>();
+            foreach (var node in ActiveNodes)
+            {
+                if (!node.IsActive)
+                    deactiveNodes.Add(node);
+            }
+
+            var types = new NodeType[deactiveNodes.Count];
+            var typeNum = System.Enum.GetNames(typeof(NodeType)).Length;
+            for (int i = 0; i < deactiveNodes.Count / typeNum; i++)
+            {
+                for (int j = 0; j < typeNum; j++)
+                    types[i * typeNum + j] = (NodeType)j;
+            }
+            for (int i = 0; i < types.Length % typeNum; i++)
+                types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
+
+            for (int i = 0; i < deactiveNodes.Count; i++)
+            {
+                isAnyNodeSpawn = true;
+                Vector2Int point = deactiveNodes[i].Point;
+                LeanPool.Despawn(deactiveNodes[i]);
+                SpawnNode(point.x, point.y, types[i]);
+                await Task.Delay(25);
+            }
+            return isAnyNodeSpawn;
+        }
+
+        EliminateInfo GetEliminateResult(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
         {
             var eliminateInfo = new EliminateInfo();
             var type = resultNode[0].Type;
@@ -309,58 +324,33 @@ namespace TmUnity.Node
             return eliminateInfo;
         }
 
-        async Task CheckAllResultAsync()
+        void SpawnNode(int x, int y, NodeType type)
         {
-            // Add all node into unpairnode
-            var unpairNode = new List<ANode>();
-            foreach (var node in ActiveNodes)
-                unpairNode.Add(node);
-            // check all node in unpair node if is exist in result node eliminate it
-            for (int i = 0; i < unpairNode.Count; i++)
+
+            var node = LeanPool.Spawn(nodePrefabs[(int)type], boardParent).GetComponent<ANode>();
+            ActiveNodes[x, y] = node;
+            var point = new Vector2Int(x, y);
+            node.name = point.ToString();
+            switch (type)
             {
-                if (unpairNode[i] == null)
-                    continue;
-                var checkNode = unpairNode[i];
-                var resultNode = new List<ANode>();
-                checkNode.CheckResult(ref resultNode);
-                if (resultNode.Count >= 3)
-                {
-                    var eliminateInfo = CheckResult(resultNode, unpairNode);
-                    DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(eliminateInfo));
-                    await Task.Delay(200);
-                }
+                case NodeType.NORMAL:
+                    (node as NormalNode).Init(attr.NormalAtk, point, (NodeType)type, this);
+                    break;
+                case NodeType.CHARGE:
+                    (node as ChargeNode).Init(attr.ChargeAtk, point, (NodeType)type, this);
+                    break;
+                case NodeType.ENERGY:
+                    (node as EnergyNode).Init(attr.Energy, point, (NodeType)type, this);
+                    break;
+                case NodeType.DEFENSE:
+                    (node as DefenseNode).Init(attr.Def, point, (NodeType)type, this);
+                    break;
+                case NodeType.CHEST:
+                    var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
+                    (node as ChestNode).Init(attr.ChestNodeAttr, (ChestType)chestType, point, (NodeType)type, this);
+                    break;
             }
         }
 
-        async Task<bool> AddNewNodeAsync()
-        {
-            var isAnyNodeSpawn = false;
-            var deactiveNodes = new List<ANode>();
-            foreach (var node in ActiveNodes)
-            {
-                if (!node.IsActive)
-                    deactiveNodes.Add(node);
-            }
-
-            var types = new NodeType[deactiveNodes.Count];
-            var typeNum = System.Enum.GetNames(typeof(NodeType)).Length;
-            for (int i = 0; i < deactiveNodes.Count / typeNum; i++)
-            {
-                for (int j = 0; j < typeNum; j++)
-                    types[i * typeNum + j] = (NodeType)j;
-            }
-            for (int i = 0; i < types.Length % typeNum; i++)
-                types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
-
-            for (int i = 0; i < deactiveNodes.Count; i++)
-            {
-                isAnyNodeSpawn = true;
-                Vector2Int point = deactiveNodes[i].Point;
-                LeanPool.Despawn(deactiveNodes[i]);
-                SpawnNode(point.x, point.y, types[i]);
-                await Task.Delay(25);
-            }
-            return isAnyNodeSpawn;
-        }
     }
 }

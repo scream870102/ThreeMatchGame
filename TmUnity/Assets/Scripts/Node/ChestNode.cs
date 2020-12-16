@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Eccentric;
-using System.Threading.Tasks;
 namespace TmUnity.Node
 {
     class ChestNode : ANode
@@ -16,7 +15,7 @@ namespace TmUnity.Node
         public override void Eliminate(bool isFXPlay = true)
         {
             if (isFXPlay)
-                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(RectTransform.position - (Vector3)aspectOffset, VFXType.HEAL));
+                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(GetCenterPos(), VFXType.HEAL));
             base.Eliminate();
         }
     }

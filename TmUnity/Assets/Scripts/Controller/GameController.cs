@@ -10,15 +10,14 @@ namespace TmUnity.Game
 {
     class GameController : MonoBehaviour
     {
+#if UNITY_EDITOR
+        [ReadOnly] [SerializeField] GS state = default(GS);
+#endif
         [ReadOnly] [SerializeField] NodeController nodeController = null;
         [SerializeField] PlayerAttr attrs = null;
         [SerializeField] Enemy enemy = null;
         [ReadOnly] [SerializeField] GameStats stats = null;
         [ReadOnly] [SerializeField] GameResultStats resultStats = null;
-#if UNITY_EDITOR
-        [ReadOnly] [SerializeField] GS state = default(GS);
-#endif
-        float elapsedTime = 0f;
         StartState startState = null;
         EndState endState = null;
         WaitState waitState = null;
@@ -26,6 +25,7 @@ namespace TmUnity.Game
         AnimateState animateState = null;
         EnemyState enemyState = null;
         GameState currentState = null;
+        float elapsedTime = 0f;
         bool isStateInit = false;
         bool isChargeReady = false;
         public float NextRoundDuration => stats.NextRoundDuration;

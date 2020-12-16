@@ -2,27 +2,24 @@
 //NOTE: IDragHandler ref "https://docs.unity3d.com/ja/2018.4/ScriptReference/EventSystems.IDragHandler.html"
 //ATTEND: Controller should get refference from Init method not in awake method only 
 //TODO: MoveTo implemented
-//TODO: Shoudl Clamp Input
+//TODO: Clamp Input
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using Eccentric;
 using System.Collections.Generic;
-using Lean.Pool;
-using System.Threading.Tasks;
 
 namespace TmUnity.Node
 {
     abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
     {
-        Image image = null;
         Vector2Int point = default(Vector2Int);
-        protected Vector2 halfSize => Size / 2f;
-        protected Vector2 aspectOffset { get; private set; } = default(Vector2);
-        protected bool isDraging { get; private set; } = false;
-        protected bool isCanMove { get; private set; } = false;
+        Vector2 aspectOffset = default(Vector2);
+        NodeController controller = null;
+        Vector2 size = default(Vector2);
+        Vector2 halfSize => size / 2f;
+        bool isDraging = false;
+        bool isCanMove = false;
         public RectTransform RectTransform { get; private set; } = null;
-        public NodeController Controller { get; private set; } = null;
         public Vector2Int Point
         {
             get => point;
@@ -34,37 +31,30 @@ namespace TmUnity.Node
             }
         }
         public NodeType Type { get; private set; } = default(NodeType);
-        public Vector2 Size { get; private set; } = default(Vector2);
         public bool IsActive { get; private set; } = true;
 
-        protected virtual void Awake()
+        void Awake()
         {
             RectTransform = GetComponent<RectTransform>();
-            image = GetComponent<Image>();
 #if UNITY_EDITOR
-            Controller = GameObject.FindObjectOfType<NodeController>();
+            controller = GameObject.FindObjectOfType<NodeController>();
 #endif
         }
+
         protected virtual void Init(Vector2Int point, NodeType type, NodeController controller)
         {
-            Size = RectTransform.sizeDelta;
+            size = RectTransform.sizeDelta;
             Point = point;
             Type = type;
-            Controller = controller;
+            this.controller = controller;
             aspectOffset = new Vector2(-halfSize.x * controller.AspectFactor.x, halfSize.y * controller.AspectFactor.y);
             IsActive = true;
             gameObject.SetActive(true);
         }
 
-        public virtual void Eliminate(bool isFXPlay = true)
-        {
-            IsActive = false;
-            gameObject.SetActive(false);
-        }
+        public void OnPointerDown(PointerEventData e) => isCanMove = controller.IsCanMove;
 
-        public virtual void OnPointerDown(PointerEventData e) => isCanMove = Controller.IsCanMove;
-
-        public virtual void OnBeginDrag(PointerEventData e)
+        public void OnBeginDrag(PointerEventData e)
         {
             if (!isCanMove)
                 return;
@@ -72,19 +62,19 @@ namespace TmUnity.Node
             DomainEvents.Raise<OnNodeDragBegin>(new OnNodeDragBegin(this));
         }
 
-        public virtual void OnDrag(PointerEventData e)
+        public void OnDrag(PointerEventData e)
         {
             if (!isCanMove || !isDraging)
                 return;
             RectTransform.position = e.position + aspectOffset;
-            var res = Controller.ScreenPosToPoint(RectTransform.position);
+            var res = controller.ScreenPosToPoint(RectTransform.position);
             if (Point != res)
-                Controller.Swap(Point, res);
+                controller.Swap(Point, res);
         }
 
-        public virtual void OnPointerUp(PointerEventData e) => CorrectPos();
+        public void OnPointerUp(PointerEventData e) => CorrectPos();
 
-        public virtual void OnEndDrag(PointerEventData e)
+        public void OnEndDrag(PointerEventData e)
         {
             if (isDraging && isCanMove)
             {
@@ -95,11 +85,33 @@ namespace TmUnity.Node
 
         }
 
+        public virtual void Eliminate(bool isFXPlay = true)
+        {
+            IsActive = false;
+            gameObject.SetActive(false);
+        }
+
+        void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
+
+        Vector2 ToAnchoredPosition() => new Vector2(point.x * size.x, -point.y * size.y);
+
+        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
+        {
+            if (!controller.IsPointOutOfBoard(nextPoint))
+            {
+                var nextNode = controller.ActiveNodes[nextPoint.x, nextPoint.y];
+                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
+                    nextNode.CheckResult(ref founds);
+            }
+        }
+
+        protected Vector3 GetCenterPos() => RectTransform.position - (Vector3)aspectOffset;
+
         public void ForceEndDrag()
         {
-            var res = Controller.ScreenPosToPoint((Vector2)RectTransform.position);
+            var res = controller.ScreenPosToPoint((Vector2)RectTransform.position);
             if (Point != res)
-                Controller.Swap(Point, res);
+                controller.Swap(Point, res);
             CorrectPos();
             isCanMove = false;
             isDraging = false;
@@ -107,10 +119,6 @@ namespace TmUnity.Node
         }
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
-
-        protected void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
-
-        protected Vector2 ToAnchoredPosition() => new Vector2(point.x * Size.x, -point.y * Size.y);
 
         public void CheckResult(ref List<ANode> founds)
         {
@@ -135,17 +143,6 @@ namespace TmUnity.Node
             return;
         }
 
-        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
-        {
-            if (!Controller.IsPointOutOfBoard(nextPoint))
-            {
-                var nextNode = Controller.ActiveNodes[nextPoint.x, nextPoint.y];
-                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
-                    nextNode.CheckResult(ref founds);
-            }
-        }
-
-        public Vector3 GetCenterPosition() => RectTransform.position + (Vector3)aspectOffset;
     }
 
 }

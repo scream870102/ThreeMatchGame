@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Threading.Tasks;
 using Lean.Pool;
-using UnityEngine.UI;
 namespace TmUnity
 {
     class PlayerAttackVFX : MonoBehaviour
     {
         Image image = null;
         void Awake() => image = GetComponent<Image>();
-        public async Task Attack(Vector3 start, Vector3 end, Color color, float vel)
+        async public Task Attack(Vector3 start, Vector3 end, Color color, float vel)
         {
             image.color = color;
             var dir = (end - start).normalized;

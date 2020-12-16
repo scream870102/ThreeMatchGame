@@ -2818,7 +2818,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeFallenTime: 0.05
   boardSize: {x: 6, y: 8}
-  nodeObjects:
+  nodePrefabs:
   - {fileID: 6252862563814508403, guid: 304af03ddd131574c960febc9c8175c8, type: 3}
   - {fileID: 1598898789053058337, guid: 93353618b5d83cd489a62a41d2924008, type: 3}
   - {fileID: 6700915402394592427, guid: 45db8ba6033003b409e9f98eaa2c2c36, type: 3}

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Eccentric;
 using Lean.Pool;
@@ -15,6 +14,14 @@ namespace TmUnity
         [SerializeField] RectTransform enemyRectTF = null;
         [SerializeField] float fireballVel = 0f;
 
+#if UNITY_EDITOR
+        async void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+                await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(new Vector3(55.7f, 454.1f, 0f), enemyRectTF.position, starColors[0], fireballVel);
+        }
+#endif
+
         void HandleVFXPlay(OnVFXPlay e)
         {
             switch (e.Type)
@@ -27,14 +34,6 @@ namespace TmUnity
                     break;
             }
         }
-
-#if UNITY_EDITOR
-        async void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-                await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(new Vector3(55.7f, 454.1f, 0f), enemyRectTF.position, starColors[0], fireballVel);
-        }
-#endif
 
         async void HandlePlayerAtkAnim(OnPlayerAtkAnim e) => await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerAttackVFX>().Attack(e.StartPos, enemyRectTF.position, starColors[(int)e.Type], fireballVel);
 
