@@ -70,9 +70,11 @@ namespace TmUnity
     [System.Serializable]
     class AttackAttr
     {
+        [SerializeField] string animTrigger = "";
         [SerializeField] int atk = 0;
         [SerializeField] float time = 0f;
         [SerializeField] int cd = 0;
+        public string AnimTrigger => animTrigger;
         public int Atk => atk;
         public float Time => time;
         public int CD => cd;

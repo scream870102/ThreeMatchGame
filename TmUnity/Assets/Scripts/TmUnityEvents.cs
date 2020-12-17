@@ -115,11 +115,11 @@ namespace TmUnity
     }
 
     ///<summary>Raise event when player use charge attack or normal attack</summary>
-    class OnPlayerAtkAnim : IDomainEvent
+    class OnPlayerVFXPlay : IDomainEvent
     {
         public Vector3 StartPos { get; private set; } = default(Vector3);
         public NodeType Type { get; private set; } = default(NodeType);
-        public OnPlayerAtkAnim(Vector3 startPos, NodeType type)
+        public OnPlayerVFXPlay(Vector3 startPos, NodeType type)
         {
             StartPos = startPos;
             Type = type;
@@ -140,8 +140,12 @@ namespace TmUnity
     ///<summary>Raise event when Enemy hp reaches zero</summary>
     class OnEnemyDead : IDomainEvent { }
 
-    ///<summary>When player attack animation end. A animation event should be invoke,In that method this event should be raise</summary>
-    class OnEnemyAtkAnimFin : IDomainEvent { }
+    ///<summary>When enemy attack animation end. A animation event should be invoke,In that method this event should be raise</summary>
+    class OnEnemyAtkAnimFin : IDomainEvent
+    {
+        public AttackAttr Attr { get; private set; } = null;
+        public OnEnemyAtkAnimFin(AttackAttr attr) => Attr = attr;
+    }
 
     #endregion
 

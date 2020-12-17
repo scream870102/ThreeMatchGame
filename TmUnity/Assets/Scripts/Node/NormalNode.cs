@@ -16,7 +16,7 @@ namespace TmUnity.Node
             if (isFXPlay)
             {
                 DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(GetCenterPos(), VFXType.ELIMINATE));
-                DomainEvents.Raise<OnPlayerAtkAnim>(new OnPlayerAtkAnim(GetCenterPos(), NodeType.NORMAL));
+                DomainEvents.Raise<OnPlayerVFXPlay>(new OnPlayerVFXPlay(GetCenterPos(), NodeType.NORMAL));
             }
             base.Eliminate();
         }

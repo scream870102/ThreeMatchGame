@@ -84,6 +84,9 @@ namespace TmUnity.Game
             stats.CurrentHP = attrs.HP;
             elapsedTime = 0f;
             StartNewRound();
+            var attackAttr = enemy.InitAttack();
+            ExtraRoundDuration = attackAttr.Time;
+            CaculateNextRoundDuration();
         }
 
         public void StartNewRound()
@@ -196,7 +199,11 @@ namespace TmUnity.Game
 
         ~WaitState() => DomainEvents.UnRegister<OnNodeDragBegin>(HandleNodeDragBegin);
 
-        public override void Init() => controller.CaculateNextRoundDuration();
+        public override void Init()
+        {
+            controller.CaculateNextRoundDuration();
+            controller.StartNewRound();
+        }
 
         public override void Tick() { }
 
@@ -218,11 +225,7 @@ namespace TmUnity.Game
 
         ~ActionState() => DomainEvents.UnRegister<OnNodeDragEnd>(HandleNodeDragEnd);
 
-        public override void Init()
-        {
-            controller.StartNewRound();
-            timer.Reset(controller.NextRoundDuration);
-        }
+        public override void Init() => timer.Reset(controller.NextRoundDuration);
 
         public override void Tick()
         {
@@ -244,7 +247,7 @@ namespace TmUnity.Game
         bool isFin = false;
         public AnimateState(GameController controller) : base(controller) { }
 
-        async public  override void Init()
+        async public override void Init()
         {
             isFin = false;
             await controller.CalculateResultAsync();
@@ -283,8 +286,7 @@ namespace TmUnity.Game
 
         void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
         {
-            var extraTime = enemy.GetNextAttack();
-            controller.ExtraRoundDuration += extraTime;
+            controller.ExtraRoundDuration += e.Attr.Time;
             controller.NewState(GS.WAIT);
         }
     }

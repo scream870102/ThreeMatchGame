@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Lean.Pool;
 namespace TmUnity
 {
-    class PlayerAttackVFX : MonoBehaviour
+    class PlayerVFX : MonoBehaviour
     {
         Image image = null;
         void Awake() => image = GetComponent<Image>();

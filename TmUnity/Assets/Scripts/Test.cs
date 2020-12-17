@@ -13,7 +13,6 @@ public class Test : MonoBehaviour
 
         var b = new Bezier(v3, .1f);
         var points = b.GetCurvesPoint();
-        //Debug.Log(points.Length);
         foreach (var p in points)
         {
             Gizmos.DrawSphere(p, .2f);

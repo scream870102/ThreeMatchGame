@@ -1,4 +1,6 @@
 ﻿//ATTEND: Implement Clamp position
+//ATTEND: Chest Type now only have hp recover
+//FIXME: SwapAsync
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -238,8 +240,12 @@ namespace TmUnity.Node
         {
             // Add all node into unpairnode
             var unpairNode = new List<ANode>();
-            foreach (var node in ActiveNodes)
-                unpairNode.Add(node);
+            // NOTE: Check node from left top to right bottom
+            for (int j = 0; j < boardSize.y; j++)
+            {
+                for (int i = 0; i < boardSize.x; i++)
+                    unpairNode.Add(ActiveNodes[i, j]);
+            }
             // check all node in unpair node if is exist in result node eliminate it
             for (int i = 0; i < unpairNode.Count; i++)
             {
@@ -360,7 +366,8 @@ namespace TmUnity.Node
                     (node as DefenseNode).Init(attr.Def, point, (NodeType)type, this);
                     break;
                 case NodeType.CHEST:
-                    var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
+                    //var chestType = Random.Range(0, System.Enum.GetNames(typeof(ChestType)).Length);
+                    var chestType = ChestType.HP_RECOVER;
                     (node as ChestNode).Init(attr.ChestNodeAttr, (ChestType)chestType, point, (NodeType)type, this);
                     break;
             }

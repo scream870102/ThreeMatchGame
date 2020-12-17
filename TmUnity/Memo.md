@@ -5,6 +5,9 @@
 - [Free Pixel Art FX Spirit X Witch](https://ppeldo.itch.io/2d-pixel-art-game-spellmagic-fx)  
 - [Fire fx](https://xyezawr.itch.io/free)  
 - [Skeleton Seeker](https://eddies-workshop.itch.io/seeker)
+- [Kyries's Free 16*16](https://kyrise.itch.io/kyrises-free-16x16-rpg-icon-pack)
+- [Weiholmir](https://justfredrik.itch.io/weiholmir)
+- [Silver](https://poppyworks.itch.io/silver)
 
 ## Memo
 //TODO:
@@ -42,6 +45,7 @@
 - The event position get from drag event should add AspectOffset to make the anchor at the middle of picture.
 - Ancored Postion is local base.Position is global based.
 - Can't Transfer to a new state at state init method
+- Chest Type now only have hp recover
 
 
 //FIN:
