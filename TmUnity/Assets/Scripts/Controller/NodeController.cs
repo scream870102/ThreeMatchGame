@@ -3,6 +3,7 @@
 //FIXME: SwapAsync
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Eccentric;
@@ -68,11 +69,51 @@ namespace TmUnity.Node
 
         async public Task CalculateResultAsync()
         {
-            await CheckAllResultAsync();
+            //var resultsNodes = new List<ANode>();
+            //var infos = await CheckAllResultAsync();
+            //var infos = CheckAllResult(ref resultsNodes);
+            var infos = CheckAllResult();
+            await PlayEliminateAnimation(infos);
             await UpdateBoardPositionAsync();
             var isAnyNodeSpawn = await AddNewNodeAsync();
             if (isAnyNodeSpawn)
                 await CalculateResultAsync();
+        }
+
+        public Dictionary<EliminateInfo, List<ANode>> CheckAllResult()
+        {
+            var infoAndNodes = new Dictionary<EliminateInfo, List<ANode>>();
+            //var eliminateInfos = new List<EliminateInfo>();
+            // Add all node into unpairnode
+            var unpairNode = new List<ANode>();
+            foreach (var node in ActiveNodes)
+                unpairNode.Add(node);
+            // check all node in unpair node if is exist in result node eliminate it
+            for (int i = 0; i < unpairNode.Count; i++)
+            {
+                if (unpairNode[i] == null)
+                    continue;
+                var checkNode = unpairNode[i];
+                var resultNode = new List<ANode>();
+                checkNode.CheckResult(ref resultNode);
+                if (resultNode.Count >= 3)
+                {
+                    resultNode.ForEach(node => node.ChangeSprite(true));
+                    infoAndNodes.Add(GetEliminateResultNotEliminate(resultNode, unpairNode), resultNode);
+                    // foreach (var node in resultNode)
+                    // {
+                    //     node.ChangeSprite(true);
+                    //     resultNodes.Add(node);
+                    // }
+                    // //resultNode.ForEach(node => node.ChangeSprite(true));
+                    // eliminateInfos.Add(GetEliminateResultNotEliminate(resultNode, unpairNode));
+                    //eliminateInfos.Add(isEliminate ? GetEliminateResultAndEliminate(resultNode, unpairNode) : GetEliminateResultNotEliminate(resultNode, unpairNode));
+                }
+                else
+                    checkNode.ChangeSprite(false);
+            }
+            //return eliminateInfos;
+            return infoAndNodes;
         }
 
         public void CalculateResultWithoutAnim()
@@ -90,7 +131,7 @@ namespace TmUnity.Node
                 var resultNode = new List<ANode>();
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
-                    GetEliminateResult(resultNode, unpairNode, false);
+                    GetEliminateResultAndEliminate(resultNode, unpairNode, false);
             }
 
             //form left bottom
@@ -236,31 +277,48 @@ namespace TmUnity.Node
             }
         }
 
-        async Task CheckAllResultAsync()
+        // async Task<List<EliminateInfo>> CheckAllResultAsync()
+        // {
+        //     var eliminateInfos = new List<EliminateInfo>();
+        //     // Add all node into unpairnode
+        //     var unpairNode = new List<ANode>();
+        //     // NOTE: Check node from left top to right bottom
+        //     for (int j = 0; j < boardSize.y; j++)
+        //     {
+        //         for (int i = 0; i < boardSize.x; i++)
+        //             unpairNode.Add(ActiveNodes[i, j]);
+        //     }
+        //     // check all node in unpair node if is exist in result node eliminate it
+        //     for (int i = 0; i < unpairNode.Count; i++)
+        //     {
+        //         if (unpairNode[i] == null)
+        //             continue;
+        //         var checkNode = unpairNode[i];
+        //         var resultNode = new List<ANode>();
+        //         checkNode.CheckResult(ref resultNode);
+        //         if (resultNode.Count >= 3)
+        //         {
+        //             resultNode.ForEach(n => n.ChangeSprite());
+        //             await Task.Delay(400);
+        //             eliminateInfos.Add(GetEliminateResultAndEliminate(resultNode, unpairNode));
+        //         }
+        //     }
+        //     return eliminateInfos;
+        // }
+
+        async Task PlayEliminateAnimation(Dictionary<EliminateInfo, List<ANode>> infos)
         {
-            // Add all node into unpairnode
-            var unpairNode = new List<ANode>();
-            // NOTE: Check node from left top to right bottom
-            for (int j = 0; j < boardSize.y; j++)
+            foreach (var o in infos)
             {
-                for (int i = 0; i < boardSize.x; i++)
-                    unpairNode.Add(ActiveNodes[i, j]);
+                DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(o.Key));
+                o.Value.ForEach(node => node.Eliminate(true));
+                await Task.Delay(300);
             }
-            // check all node in unpair node if is exist in result node eliminate it
-            for (int i = 0; i < unpairNode.Count; i++)
-            {
-                if (unpairNode[i] == null)
-                    continue;
-                var checkNode = unpairNode[i];
-                var resultNode = new List<ANode>();
-                checkNode.CheckResult(ref resultNode);
-                if (resultNode.Count >= 3)
-                {
-                    var eliminateInfo = GetEliminateResult(resultNode, unpairNode);
-                    DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(eliminateInfo));
-                    await Task.Delay(200);
-                }
-            }
+            // foreach (var info,nodes in infos)
+            // {
+            //     DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(info));
+            //     await Task.Delay(1000);
+            // }
         }
 
         async Task<bool> AddNewNodeAsync()
@@ -282,19 +340,19 @@ namespace TmUnity.Node
             }
             for (int i = 0; i < types.Length % typeNum; i++)
                 types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
-
+            var shuffleTypes = types.ToList().Shuffle();
             for (int i = 0; i < deactiveNodes.Count; i++)
             {
                 isAnyNodeSpawn = true;
                 Vector2Int point = deactiveNodes[i].Point;
                 LeanPool.Despawn(deactiveNodes[i]);
-                SpawnNode(point.x, point.y, types[i]);
+                SpawnNode(point.x, point.y, shuffleTypes[i]);
                 await Task.Delay(25);
             }
             return isAnyNodeSpawn;
         }
 
-        EliminateInfo GetEliminateResult(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
+        EliminateInfo GetEliminateResultAndEliminate(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
         {
             var eliminateInfo = new EliminateInfo();
             var type = resultNode[0].Type;
@@ -302,6 +360,56 @@ namespace TmUnity.Node
             {
                 unpairNode[unpairNode.IndexOf(o)] = null;
                 o.Eliminate(isFXPlay);
+                switch (type)
+                {
+                    case NodeType.NORMAL:
+                        eliminateInfo.NormalAtk += (o as NormalNode).Atk;
+                        break;
+                    case NodeType.CHARGE:
+                        eliminateInfo.ChargeAtk += (o as ChargeNode).BasicAtk;
+                        eliminateInfo.ChargeNum += 1;
+                        break;
+                    case NodeType.ENERGY:
+                        eliminateInfo.EnergyTime += (o as EnergyNode).TimePlus;
+                        break;
+                    case NodeType.DEFENSE:
+                        eliminateInfo.Def += (o as DefenseNode).Def;
+                        break;
+                    case NodeType.CHEST:
+                        var node = (o as ChestNode);
+                        switch (node.ChestType)
+                        {
+
+                            case ChestType.ATK_UP:
+                                eliminateInfo.NormalAtk += node.Attr.AtkUp;
+                                break;
+                            case ChestType.CHARGE_COUNT_PLUS:
+                                eliminateInfo.ChargeNum += node.Attr.ChargeCount;
+                                break;
+                            case ChestType.DEF_UP:
+                                eliminateInfo.Def += node.Attr.DefUp;
+                                break;
+                            case ChestType.ENERGY_UP:
+                                eliminateInfo.EnergyTime += node.Attr.EnergyUp;
+                                break;
+                            case ChestType.HP_RECOVER:
+                                eliminateInfo.HPRecover += node.Attr.HPRecover;
+                                break;
+                        }
+                        break;
+                }
+            }
+            return eliminateInfo;
+        }
+
+
+        EliminateInfo GetEliminateResultNotEliminate(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
+        {
+            var eliminateInfo = new EliminateInfo();
+            var type = resultNode[0].Type;
+            foreach (var o in resultNode)
+            {
+                unpairNode[unpairNode.IndexOf(o)] = null;
                 switch (type)
                 {
                     case NodeType.NORMAL:

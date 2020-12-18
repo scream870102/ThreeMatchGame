@@ -87,6 +87,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68fcbbe396da6224583e6a3086dc50c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  normalSprite: {fileID: 21300000, guid: 3dc223cd6372b2343a5a4141d303c327, type: 3}
+  outlineSprite: {fileID: 21300000, guid: 8d465711d7eaf7646a9c845a97e39848, type: 3}
 --- !u!114 &114269299967167630
 MonoBehaviour:
   m_ObjectHideFlags: 0

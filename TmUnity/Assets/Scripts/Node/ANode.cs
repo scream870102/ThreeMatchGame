@@ -5,15 +5,18 @@
 //TODO: Clamp Input
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Eccentric;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace TmUnity.Node
 {
     abstract class ANode : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
     {
+        [SerializeField] Sprite normalSprite = null;
+        [SerializeField] Sprite outlineSprite = null;
+        Image image = null;
         Vector2Int point = default(Vector2Int);
         Vector2 aspectOffset = default(Vector2);
         NodeController controller = null;
@@ -35,10 +38,15 @@ namespace TmUnity.Node
         public NodeType Type { get; private set; } = default(NodeType);
         public bool IsActive { get; private set; } = true;
 
-        void Awake() => RectTransform = GetComponent<RectTransform>();
+        void Awake()
+        {
+            RectTransform = GetComponent<RectTransform>();
+            image = GetComponent<Image>();
+        }
 
         virtual protected void Init(Vector2Int point, NodeType type, NodeController controller)
         {
+            image.sprite = normalSprite;
             size = RectTransform.sizeDelta;
             Point = point;
             Type = type;
@@ -85,6 +93,8 @@ namespace TmUnity.Node
             }
 
         }
+
+        public void ChangeSprite(bool changeToOutline = true) => image.sprite = changeToOutline ? outlineSprite : normalSprite;
 
         virtual public void Eliminate(bool isFXPlay = true)
         {

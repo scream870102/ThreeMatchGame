@@ -6,6 +6,12 @@ namespace TmUnity
 {
     class UIController : MonoBehaviour
     {
+
+        [SerializeField] GameObject leftInfoObject = null;
+        [SerializeField] GameObject rightInfoObject = null;
+        [SerializeField] Text enemyInfoText = null;
+        [SerializeField] Text enemyInfoShadowText = null;
+        [SerializeField] Text cardText = null;
         [SerializeField] Slider currenHPSlider = null;
         [SerializeField] Slider newHPAndDefSlider = null;
         [SerializeField] Slider newHPSlider = null;
@@ -25,19 +31,30 @@ namespace TmUnity
         [SerializeField] Text recordText = null;
         [SerializeField] Text pressText = null;
         [SerializeField] Text totalDamageText = null;
+        [SerializeField] Text chargeNumPlusText = null;
+        [SerializeField] Text defensePlusText = null;
         Animation comboAnim = null;
         Animation totalDamageAnim = null;
+        Animation cardAnim = null;
         int maxChargeNum = 0;
         int maxHP = 0;
         int currentHP = 0;
         int nextAttack = 0;
         int currentDef = 0;
         int currentHPRecover = 0;
+        int chargeNumPlus = 0;
 
         void Start()
         {
             comboAnim = comboText.GetComponent<Animation>();
             totalDamageAnim = totalDamageText.GetComponent<Animation>();
+            cardAnim = cardText.transform.parent.GetComponent<Animation>();
+        }
+
+        void EnablePlayerInfo(bool isEnable = true)
+        {
+            rightInfoObject.SetActive(isEnable);
+            leftInfoObject.SetActive(isEnable);
         }
 
         void UpdateHPSlider()
@@ -57,8 +74,16 @@ namespace TmUnity
             totalDamageAnim.Play(PlayMode.StopAll);
         }
 
-        void UpdateRecoverText() => recoverText.text = $"+{currentHPRecover}";
+        //void UpdateRecoverText() => recoverText.text = $"+{currentHPRecover}";
 
+        void UpdateLeftText()
+        {
+            chargeNumPlusText.text = chargeNumPlus.ToString();
+            defensePlusText.text = currentDef.ToString();
+            recoverText.text = $"+{currentHPRecover}";
+        }
+
+        // Start State
         void HandleGameStart(OnGameStart e)
         {
             gameEndImage.gameObject.SetActive(true);
@@ -67,6 +92,20 @@ namespace TmUnity
             recordText.text = "Do your best to get best point";
         }
 
+        // Start State
+        void HandlePlayerStatsInit(OnPlayerStatsInit e)
+        {
+            maxHP = e.MaxHP;
+            maxChargeNum = e.MaxChargeNum;
+            chargeNumPlus = 0;
+            chargeSlider.maxValue = maxChargeNum;
+            currenHPSlider.maxValue = maxHP;
+            gameEndImage.gameObject.SetActive(false);
+            UpdateHPSlider();
+            UpdateLeftText();
+        }
+
+        // End State Init
         void HandleGameEnd(OnGameEnd e)
         {
             gameEndImage.gameObject.SetActive(true);
@@ -78,14 +117,37 @@ namespace TmUnity
             recordText.text = $"Max Damage : {e.Result.MaxDamage} \n Elapsed Time : {e.Result.ElapsedTime.ToString("0.00")}s";
         }
 
-        void HandlePlayerStatsInit(OnPlayerStatsInit e)
+        #region Statsから
+
+        void HandleAtkChanged(OnAtkChanged e)
         {
-            maxHP = e.MaxHP;
-            maxChargeNum = e.MaxChargeNum;
-            chargeSlider.maxValue = maxChargeNum;
-            currenHPSlider.maxValue = maxHP;
-            gameEndImage.gameObject.SetActive(false);
+            atkText.text = $"+{e.NewAtk}";
+            UpdateTotalDamageText();
+        }
+
+        void HandleChargeAtkChanged(OnChargeAtkChanged e)
+        {
+            chargeAtkText.text = $"+{e.NewAtk}";
+            UpdateTotalDamageText();
+        }
+
+        void HandleDefChanged(OnDefChanged e)
+        {
+            currentDef = e.NewDef;
+            UpdateLeftText();
             UpdateHPSlider();
+        }
+
+        void HandleEnergyChanged(OnEnergyChanged e)
+        {
+            timeText.text = $"{e.NewEnergy.ToString("0.0")} sec";
+            timeSlider.maxValue = e.NewEnergy;
+        }
+
+        void HandleChargeCountChanged(OnChargeCountChange e)
+        {
+            chargeSlider.value = e.Current;
+            chargeCountText.text = $"{e.Current}/{maxChargeNum}";
         }
 
         void HandlePlayerHPChanged(OnPlayerHPChanged e)
@@ -101,53 +163,50 @@ namespace TmUnity
             UpdateHPSlider();
         }
 
-        void HandleNodeEliminate(OnNodeEliminate e)
-        {
-            currentHPRecover += e.Info.HPRecover;
-            UpdateRecoverText();
-        }
-
-        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
-        {
-            nextAttack = e.Attr.Atk;
-            UpdateHPSlider();
-        }
-
-        void HandleDefChanged(OnDefChanged e)
-        {
-            currentDef = e.NewDef;
-            UpdateHPSlider();
-        }
-
-        void HandleAtkChanged(OnAtkChanged e)
-        {
-            atkText.text = $"+{e.NewAtk}";
-            UpdateTotalDamageText();
-        }
-
-        void HandleChargeAtkChanged(OnChargeAtkChanged e)
-        {
-            chargeAtkText.text = $"+{e.NewAtk}";
-            UpdateTotalDamageText();
-        }
-
-        void HandleEnergyChanged(OnEnergyChanged e)
-        {
-            timeText.text = $"{e.NewEnergy.ToString("0.0")} sec";
-            timeSlider.maxValue = e.NewEnergy;
-        }
-
-        void HandleChargeCountChanged(OnChargeCountChange e)
-        {
-            chargeSlider.value = e.Current;
-            chargeCountText.text = $"{e.Current}/{maxChargeNum}";
-        }
-
         void HandleComboChange(OnComboChange e)
         {
             if (e.Combos != 0)
                 comboAnim.Play(PlayMode.StopAll);
             comboText.text = $"{e.Combos} Combo";
+        }
+
+        #endregion
+
+
+
+        #region パズル移動後
+
+        //Init Animate State
+        void HandleEnemyHPChanged(OnEnemyHPChanged e)
+        {
+            enemyHPSlider.maxValue = e.MaxHP;
+            enemyHPSlider.value = e.NewHP;
+            enemyHPText.text = $"{e.NewHP}/{e.MaxHP}";
+        }
+
+
+
+        // Init Animate State
+        void HandleNodeEliminate(OnNodeEliminate e)
+        {
+            currentHPRecover += e.Info.HPRecover;
+            chargeNumPlus += e.Info.ChargeNum;
+            //UpdateRecoverText();
+            UpdateLeftText();
+        }
+
+        #endregion
+
+
+        #region パズル移動前
+
+        //End Enemy State
+        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
+        {
+            nextAttack = e.Attr.Atk;
+            enemyInfoText.text = $"{e.Attr.AnimTrigger} coming\n{e.Attr.Atk} damage";
+            enemyInfoShadowText.text = $"{e.Attr.AnimTrigger} coming\n{e.Attr.Atk} damage";
+            UpdateHPSlider();
         }
 
         //NOTE: this is call before start new round can init value of current round at this
@@ -157,7 +216,10 @@ namespace TmUnity
             timeSlider.value = e.MaxTime;
             timeText.text = $"{e.MaxTime.ToString("0.0")}s";
             currentHPRecover = 0;
-            UpdateRecoverText();
+            chargeNumPlus = 0;
+            //UpdateRecoverText();
+            UpdateLeftText();
+
         }
 
         void HandleRemainTimeChanged(OnRemainTimeChanged e)
@@ -166,11 +228,31 @@ namespace TmUnity
             timeSlider.value = e.Remain;
         }
 
-        void HandleEnemyHPChanged(OnEnemyHPChanged e)
+        #endregion
+
+        void HandleGameStateChange(OnGameStateChange e)
         {
-            enemyHPSlider.maxValue = e.MaxHP;
-            enemyHPSlider.value = e.NewHP;
-            enemyHPText.text = $"{e.NewHP}/{e.MaxHP}";
+            switch (e.NewState)
+            {
+                case GameState.WAIT:
+                    EnablePlayerInfo(false);
+                    enemyInfoText.enabled = true;
+                    enemyInfoShadowText.enabled = true;
+                    cardText.text = "YOUR TURN";
+                    cardAnim.Play(PlayMode.StopAll);
+                    break;
+                case GameState.ACTION:
+                    enemyInfoText.enabled = false;
+                    enemyInfoShadowText.enabled = false;
+                    EnablePlayerInfo(true);
+                    break;
+                case GameState.ANIMATE:
+                    break;
+                case GameState.ENEMY:
+                    cardText.text = "ENEMY TURN";
+                    cardAnim.Play(PlayMode.StopAll);
+                    break;
+            }
         }
 
         void OnEnable()
@@ -190,6 +272,7 @@ namespace TmUnity
             DomainEvents.Register<OnGameEnd>(HandleGameEnd);
             DomainEvents.Register<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
             DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
+            DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
         }
 
         void OnDisable()
@@ -209,6 +292,7 @@ namespace TmUnity
             DomainEvents.UnRegister<OnGameEnd>(HandleGameEnd);
             DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
             DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
+            DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
         }
 
     }

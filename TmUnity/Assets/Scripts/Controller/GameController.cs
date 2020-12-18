@@ -118,6 +118,8 @@ namespace TmUnity.Game
 
         public void ForceEndDrag() => nodeController.ForceEndDrag();
 
+        public void CheckAllResult() => nodeController.CheckAllResult();
+
         void HandleNodeEliminate(OnNodeEliminate e)
         {
             stats.CurrentAtk += e.Info.NormalAtk;
@@ -230,6 +232,7 @@ namespace TmUnity.Game
         public override void Tick()
         {
             DomainEvents.Raise<OnRemainTimeChanged>(new OnRemainTimeChanged(timer.Remain));
+            controller.CheckAllResult();
             if (timer.IsFinished)
             {
                 controller.ForceEndDrag();
@@ -250,6 +253,7 @@ namespace TmUnity.Game
         async public override void Init()
         {
             isFin = false;
+            controller.CheckAllResult();
             await controller.CalculateResultAsync();
             controller.UpdateMaxDamage();
             //NOTE: if enemy dead here it will play dead animation and game controller will receive the message and will enter END state
