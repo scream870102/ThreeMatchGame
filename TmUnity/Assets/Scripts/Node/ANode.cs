@@ -21,7 +21,6 @@ namespace TmUnity.Node
         Vector2 aspectOffset = default(Vector2);
         NodeController controller = null;
         Vector2 size = default(Vector2);
-        Vector2 halfSize => size / 2f;
         bool isDraging = false;
         bool isCanMove = false;
         public RectTransform RectTransform { get; private set; } = null;
@@ -51,6 +50,7 @@ namespace TmUnity.Node
             Point = point;
             Type = type;
             this.controller = controller;
+            var halfSize = size * 0.5f;
             aspectOffset = new Vector2(-halfSize.x * controller.AspectFactor.x, halfSize.y * controller.AspectFactor.y);
             IsActive = true;
             gameObject.SetActive(true);
@@ -115,39 +115,7 @@ namespace TmUnity.Node
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
 
-        async public Task MoveToPointAsync(Vector2Int newPoint)
-        {
 
-            var controlPoints = new List<Vector3>();
-            controlPoints.Add(controller.PointToAnchoredPos(Point));
-            // find direction first 
-            bool isHori = newPoint.y == Point.y;
-            // if is hori move  
-            if (isHori)
-            {
-                var yOffset = (newPoint.x - Point.x) * .3f;
-                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x, Point.y + yOffset)));
-                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x, newPoint.x + yOffset)));
-            }
-            // if is vert move
-            else
-            {
-                var xOffset = (newPoint.y - Point.y) * .3f;
-                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x + xOffset, Point.y)));
-                controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x + xOffset, newPoint.y)));
-            }
-            controlPoints.Add(controller.PointToAnchoredPos(newPoint));
-            //Get Bezier
-            Bezier b = new Bezier(controlPoints.ToArray(), .1f);
-            var points = b.GetCurvesPoint();
-            //Move in 0.1sec
-            foreach (var p in points)
-            {
-                RectTransform.anchoredPosition = p;
-                await Task.Delay(1);
-            }
-            Point = newPoint;
-        }
 
         public void CheckResult(ref List<ANode> founds)
         {

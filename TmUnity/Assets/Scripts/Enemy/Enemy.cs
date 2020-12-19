@@ -96,6 +96,7 @@ namespace TmUnity
 
         public void PlayAttackAnim()
         {
+            //DomainEvents.Raise<OnEnemyAtkAnimStart>(new OnEnemyAtkAnimStart());
             parent.SkillText.text = attr.AnimTrigger;
             parent.SkillDamageText.text = attr.Atk.ToString();
             anim.SetTrigger(attr.AnimTrigger);

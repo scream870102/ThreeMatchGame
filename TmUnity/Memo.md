@@ -8,6 +8,7 @@
 - [Kyries's Free 16*16](https://kyrise.itch.io/kyrises-free-16x16-rpg-icon-pack)
 - [Weiholmir](https://justfredrik.itch.io/weiholmir)
 - [Silver](https://poppyworks.itch.io/silver)
+- [Skill Icon Set](https://quintino-pixels.itch.io/free-pixel-art-skill-icons-pack)
 
 ## Memo
 //TODO:
@@ -53,5 +54,60 @@
 - 定位調整
 - 落下動畫
 - 沒消珠的BUG
+
+
+//TMP
+ANODE
+```csharp
+async public Task MoveToPointAsync(Vector2Int newPoint)
+{
+
+    var controlPoints = new List<Vector3>();
+    controlPoints.Add(controller.PointToAnchoredPos(Point));
+    // find direction first 
+    bool isHori = newPoint.y == Point.y;
+    // if is hori move  
+    if (isHori)
+    {
+        var yOffset = (newPoint.x - Point.x) * .3f;
+        controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x, Point.y + yOffset)));
+        controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x, newPoint.x + yOffset)));
+    }
+    // if is vert move
+    else
+    {
+        var xOffset = (newPoint.y - Point.y) * .3f;
+        controlPoints.Add(controller.PointToAnchoredPos(new Vector2(Point.x + xOffset, Point.y)));
+        controlPoints.Add(controller.PointToAnchoredPos(new Vector2(newPoint.x + xOffset, newPoint.y)));
+    }
+    controlPoints.Add(controller.PointToAnchoredPos(newPoint));
+    //Get Bezier
+    Bezier b = new Bezier(controlPoints.ToArray(), .1f);
+    var points = b.GetCurvesPoint();
+    //Move in 0.1sec
+    foreach (var p in points)
+    {
+        RectTransform.anchoredPosition = p;
+        await Task.Delay(1);
+    }
+    Point = newPoint;
+}
+```
+
+NODE CONTROLER
+```csharp
+async public Task SwapAsync(Vector2Int movingNode, Vector2Int swapNode)
+{
+    if (IsPointOutOfBoard(swapNode))
+        return;
+    IsNodeSwaping = true;
+    ActiveNodes[movingNode.x, movingNode.y].MoveToPoint(swapNode);
+    await ActiveNodes[swapNode.x, swapNode.y].MoveToPointAsync(movingNode);
+    var tmpNode = ActiveNodes[swapNode.x, swapNode.y];
+    ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
+    ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
+    IsNodeSwaping = false;
+        // }
+```
 
 

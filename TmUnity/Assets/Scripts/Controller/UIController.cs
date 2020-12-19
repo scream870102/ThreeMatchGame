@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
 using Eccentric;
 using TmUnity.Node;
@@ -6,7 +7,7 @@ namespace TmUnity
 {
     class UIController : MonoBehaviour
     {
-
+        [SerializeField] Animation gamePanelAnim = null;
         [SerializeField] GameObject leftInfoObject = null;
         [SerializeField] GameObject rightInfoObject = null;
         [SerializeField] Text enemyInfoText = null;
@@ -51,6 +52,13 @@ namespace TmUnity
             cardAnim = cardText.transform.parent.GetComponent<Animation>();
         }
 
+        async void DefAnimFinAE()
+        {
+            DomainEvents.Raise<OnDefAnimFin>(new OnDefAnimFin());
+            await Task.Delay(2000);
+            UpdateHPSlider();
+        }
+
         void EnablePlayerInfo(bool isEnable = true)
         {
             rightInfoObject.SetActive(isEnable);
@@ -59,7 +67,7 @@ namespace TmUnity
 
         void UpdateHPSlider()
         {
-            playerHPText.text = $"({currentDef}){currentHP}/{maxHP}";
+            playerHPText.text = $"{currentHP}/{maxHP}";
             currenHPSlider.maxValue = maxHP;
             newHPAndDefSlider.maxValue = maxHP;
             newHPSlider.maxValue = maxHP;
@@ -73,8 +81,6 @@ namespace TmUnity
             totalDamageText.text = (int.Parse(atkText.text) + int.Parse(chargeAtkText.text)).ToString();
             totalDamageAnim.Play(PlayMode.StopAll);
         }
-
-        //void UpdateRecoverText() => recoverText.text = $"+{currentHPRecover}";
 
         void UpdateLeftText()
         {
@@ -191,7 +197,6 @@ namespace TmUnity
         {
             currentHPRecover += e.Info.HPRecover;
             chargeNumPlus += e.Info.ChargeNum;
-            //UpdateRecoverText();
             UpdateLeftText();
         }
 
@@ -206,7 +211,7 @@ namespace TmUnity
             nextAttack = e.Attr.Atk;
             enemyInfoText.text = $"{e.Attr.AnimTrigger} coming\n{e.Attr.Atk} damage";
             enemyInfoShadowText.text = $"{e.Attr.AnimTrigger} coming\n{e.Attr.Atk} damage";
-            UpdateHPSlider();
+            gamePanelAnim.Play();
         }
 
         //NOTE: this is call before start new round can init value of current round at this
@@ -217,7 +222,6 @@ namespace TmUnity
             timeText.text = $"{e.MaxTime.ToString("0.0")}s";
             currentHPRecover = 0;
             chargeNumPlus = 0;
-            //UpdateRecoverText();
             UpdateLeftText();
 
         }
@@ -251,6 +255,7 @@ namespace TmUnity
                 case GameState.ENEMY:
                     cardText.text = "ENEMY TURN";
                     cardAnim.Play(PlayMode.StopAll);
+
                     break;
             }
         }

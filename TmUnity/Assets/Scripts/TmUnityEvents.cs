@@ -140,6 +140,13 @@ namespace TmUnity
     ///<summary>Raise event when Enemy hp reaches zero</summary>
     class OnEnemyDead : IDomainEvent { }
 
+    // ///<summary>Raise event when Enemy Attack start</summary>
+    // class OnEnemyAtkAnimStart : IDomainEvent { }
+
+    ///<summary>Raise event when Def animation fin</summary>
+    class OnDefAnimFin : IDomainEvent { }
+
+
     ///<summary>When enemy attack animation end. A animation event should be invoke,In that method this event should be raise</summary>
     class OnEnemyAtkAnimFin : IDomainEvent
     {

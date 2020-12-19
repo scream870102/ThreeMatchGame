@@ -21,7 +21,6 @@ namespace TmUnity.Node
         Vector2 adjustedNodeSize = default(Vector2);
         ANode currentNode = null;
         public Vector2 AspectFactor { get; private set; } = default(Vector2);
-        public Vector2 BoardMaxSize { get; private set; } = default(Vector2);
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
 
@@ -32,7 +31,6 @@ namespace TmUnity.Node
             //NOTE: The aspect of board is constant so just calcluate the apsectFactor by width  cause screen height will change
             AspectFactor = new Vector2(Screen.width / refRes.x, Screen.width / refRes.x);
             adjustedNodeSize = new Vector2(Screen.width / boardSize.x, Screen.width / boardSize.x);
-            BoardMaxSize = new Vector2(boardSize.x * adjustedNodeSize.x, boardSize.y * adjustedNodeSize.y);
         }
 
         void OnEnable()
@@ -82,8 +80,11 @@ namespace TmUnity.Node
             var infoAndNodes = new Dictionary<EliminateInfo, List<ANode>>();
             // Add all node into unpairnode
             var unpairNode = new List<ANode>();
-            foreach (var node in ActiveNodes)
-                unpairNode.Add(node);
+            for (int j = 0; j < boardSize.y; j++)
+            {
+                for (int i = 0; i < boardSize.x; i++)
+                    unpairNode.Add(ActiveNodes[i, j]);
+            }
             // check all node in unpair node if is exist in result node eliminate it
             for (int i = 0; i < unpairNode.Count; i++)
             {
@@ -111,70 +112,6 @@ namespace TmUnity.Node
             var isAnyNodeSpawn = await AddNewNodeAsync(false);
             if (isAnyNodeSpawn)
                 CalculateResultWithoutAnim();
-            // foreach (var o in infos)
-            // {
-            //     o.Value.ForEach(node => node.Eliminate(false));
-            // }
-
-            // //form left bottom
-            // for (int j = boardSize.y - 2; j >= 0; j--)
-            // {
-            //     for (int i = 0; i < boardSize.x; i++)
-            //     {
-            //         var node = ActiveNodes[i, j];
-            //         // if node is disable do nothing
-            //         if (!node.IsActive)
-            //             continue;
-            //         ANode underNode = null;
-            //         int nextY = j;
-            //         //Try to find the next node
-            //         while (underNode == null)
-            //         {
-            //             nextY++;
-            //             // if next one is out of board break the loop
-            //             if (nextY >= boardSize.y)
-            //                 break;
-            //             var tmpNextNode = ActiveNodes[i, nextY];
-            //             // if nextNode is the bottom row and is deactive add it
-            //             if (nextY == boardSize.y - 1 && !tmpNextNode.IsActive)
-            //                 underNode = tmpNextNode;
-            //             //if next node is active and above the next node is deactive add it
-            //             if (tmpNextNode.IsActive && !ActiveNodes[i, nextY - 1].IsActive)
-            //                 underNode = ActiveNodes[i, nextY - 1];
-            //         }
-            //         if (underNode != null)
-            //             Swap(node.Point, underNode.Point);
-            //     }
-            // }
-
-
-            // var isAnyNodeSpawn = false;
-            // var deactiveNodes = new List<ANode>();
-            // foreach (var node in ActiveNodes)
-            // {
-            //     if (!node.IsActive)
-            //         deactiveNodes.Add(node);
-            // }
-
-            // var types = new NodeType[deactiveNodes.Count];
-            // var typeNum = System.Enum.GetNames(typeof(NodeType)).Length;
-            // for (int i = 0; i < deactiveNodes.Count / typeNum; i++)
-            // {
-            //     for (int j = 0; j < typeNum; j++)
-            //         types[i * typeNum + j] = (NodeType)j;
-            // }
-            // for (int i = 0; i < types.Length % typeNum; i++)
-            //     types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
-
-            // for (int i = 0; i < deactiveNodes.Count; i++)
-            // {
-            //     isAnyNodeSpawn = true;
-            //     Vector2Int point = deactiveNodes[i].Point;
-            //     LeanPool.Despawn(deactiveNodes[i]);
-            //     SpawnNode(point.x, point.y, types[i]);
-            // }
-            // if (isAnyNodeSpawn)
-            //     CalculateResultWithoutAnim();
 
         }
 
@@ -296,7 +233,7 @@ namespace TmUnity.Node
             return isAnyNodeSpawn;
         }
 
-        EliminateInfo GetEliminateResult(List<ANode> resultNode, List<ANode> unpairNode, bool isFXPlay = true)
+        EliminateInfo GetEliminateResult(List<ANode> resultNode, List<ANode> unpairNode)
         {
             var eliminateInfo = new EliminateInfo();
             var type = resultNode[0].Type;
@@ -373,18 +310,5 @@ namespace TmUnity.Node
                     break;
             }
         }
-
-        // async public Task SwapAsync(Vector2Int movingNode, Vector2Int swapNode)
-        // {
-        //     if (IsPointOutOfBoard(swapNode))
-        //         return;
-        //     IsNodeSwaping = true;
-        //     ActiveNodes[movingNode.x, movingNode.y].MoveToPoint(swapNode);
-        //     await ActiveNodes[swapNode.x, swapNode.y].MoveToPointAsync(movingNode);
-        //     var tmpNode = ActiveNodes[swapNode.x, swapNode.y];
-        //     ActiveNodes[swapNode.x, swapNode.y] = ActiveNodes[movingNode.x, movingNode.y];
-        //     ActiveNodes[movingNode.x, movingNode.y] = tmpNode;
-        //     IsNodeSwaping = false;
-        // }
     }
 }

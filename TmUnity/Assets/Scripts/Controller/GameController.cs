@@ -116,6 +116,13 @@ namespace TmUnity.Game
                 resultStats.MaxDamage = TotalDamage;
         }
 
+        public void BeAttacked(int damage)
+        {
+            var newDamage = damage - stats.CurrentDef;
+            newDamage = newDamage <= 0 ? 0 : newDamage;
+            stats.CurrentHP -= newDamage;
+        }
+
         public void ForceEndDrag() => nodeController.ForceEndDrag();
 
         public void CheckAllResult() => nodeController.CheckAllResult();
@@ -136,13 +143,6 @@ namespace TmUnity.Game
             }
         }
 
-        void HandlePlayerBeAttacked(OnPlayerBeAttacked e)
-        {
-            var damage = e.Atk - stats.CurrentDef;
-            damage = damage <= 0 ? 0 : damage;
-            stats.CurrentHP -= damage;
-        }
-
         void HandlePlayerDead(OnPlayerDead e) => EndGame(false);
 
         void HandleEnemyDead(OnEnemyDead e) => EndGame(true);
@@ -150,7 +150,6 @@ namespace TmUnity.Game
         void OnEnable()
         {
             DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
-            DomainEvents.Register<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
             DomainEvents.Register<OnPlayerDead>(HandlePlayerDead);
             DomainEvents.Register<OnEnemyDead>(HandleEnemyDead);
         }
@@ -158,7 +157,6 @@ namespace TmUnity.Game
         void OnDisable()
         {
             DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
-            DomainEvents.UnRegister<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
             DomainEvents.UnRegister<OnPlayerDead>(HandlePlayerDead);
             DomainEvents.UnRegister<OnEnemyDead>(HandleEnemyDead);
         }
@@ -273,12 +271,15 @@ namespace TmUnity.Game
     class EnemyState : GameState
     {
         Enemy enemy = null;
-
+        float extraTime = 0f;
+        int atk = 0;
         public EnemyState(Enemy enemy, GameController controller) : base(controller) => this.enemy = enemy;
 
         public override void Init()
         {
             DomainEvents.Register<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.Register<OnDefAnimFin>(HandleDefAnimFin);
+            DomainEvents.Register<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
             //NOTE: enemy will play attack animation and will raise OnPlayerBeAttacked if player hp gets zero hp stats will raise OnPlayerDead
             // Controller will receive message and enter END state
             enemy.Attack();
@@ -286,13 +287,23 @@ namespace TmUnity.Game
 
         public override void Tick() { }
 
-        public override void End() => DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
-
-        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
+        public override void End()
         {
-            controller.ExtraRoundDuration += e.Attr.Time;
+            DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.UnRegister<OnDefAnimFin>(HandleDefAnimFin);
+            DomainEvents.UnRegister<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
+        }
+
+        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e) => extraTime = e.Attr.Time;
+
+        void HandleDefAnimFin(OnDefAnimFin e)
+        {
+            controller.ExtraRoundDuration += extraTime;
+            controller.BeAttacked(atk);
             controller.NewState(GS.WAIT);
         }
+
+        void HandlePlayerBeAttacked(OnPlayerBeAttacked e) => atk = e.Atk;
     }
 
     abstract class GameState : IState
