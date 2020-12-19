@@ -2,13 +2,13 @@
 using Eccentric;
 namespace TmUnity.Node
 {
-    class ChargeNode : ANode
+    class ManaNode : ANode
     {
-        public int BasicAtk { get; private set; } = 0;
-        public void Init(int basicAtk, Vector2Int point, NodeType type, NodeController controller)
+        public int Mana { get; private set; } = 0;
+        public void Init(int mana, Vector2Int point, NodeType type, NodeController controller)
         {
             base.Init(point, type, controller);
-            BasicAtk = basicAtk;
+            Mana = mana;
         }
 
         public override void Eliminate(bool isFXPlay = true)
@@ -16,7 +16,7 @@ namespace TmUnity.Node
             if (isFXPlay)
             {
                 DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(GetCenterPos(), VFXType.ELIMINATE));
-                DomainEvents.Raise<OnPlayerVFXPlay>(new OnPlayerVFXPlay(GetCenterPos(), NodeType.CHARGE));
+                DomainEvents.Raise<OnPlayerVFXPlay>(new OnPlayerVFXPlay(GetCenterPos(), NodeType.MANA));
             }
             base.Eliminate();
         }

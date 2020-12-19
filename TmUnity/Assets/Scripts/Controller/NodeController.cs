@@ -24,7 +24,6 @@ namespace TmUnity.Node
         public ANode[,] ActiveNodes { get; private set; } = null;
         public bool IsCanMove { get; private set; } = false;
 
-        public bool IsNodeSwaping { get; private set; } = false;
         void Awake()
         {
             refRes = boardParent.parent.parent.GetComponent<CanvasScaler>().referenceResolution;
@@ -242,12 +241,11 @@ namespace TmUnity.Node
                 unpairNode[unpairNode.IndexOf(o)] = null;
                 switch (type)
                 {
-                    case NodeType.NORMAL:
-                        eliminateInfo.NormalAtk += (o as NormalNode).Atk;
+                    case NodeType.ATTACK:
+                        eliminateInfo.Atk += (o as AttackNode).Atk;
                         break;
-                    case NodeType.CHARGE:
-                        eliminateInfo.ChargeAtk += (o as ChargeNode).BasicAtk;
-                        eliminateInfo.ChargeNum += 1;
+                    case NodeType.MANA:
+                        eliminateInfo.Mana += (o as ManaNode).Mana;
                         break;
                     case NodeType.ENERGY:
                         eliminateInfo.EnergyTime += (o as EnergyNode).TimePlus;
@@ -261,10 +259,7 @@ namespace TmUnity.Node
                         {
 
                             case ChestType.ATK_UP:
-                                eliminateInfo.NormalAtk += node.Attr.AtkUp;
-                                break;
-                            case ChestType.CHARGE_COUNT_PLUS:
-                                eliminateInfo.ChargeNum += node.Attr.ChargeCount;
+                                eliminateInfo.Atk += node.Attr.AtkUp;
                                 break;
                             case ChestType.DEF_UP:
                                 eliminateInfo.Def += node.Attr.DefUp;
@@ -291,11 +286,11 @@ namespace TmUnity.Node
             node.name = point.ToString();
             switch (type)
             {
-                case NodeType.NORMAL:
-                    (node as NormalNode).Init(attr.NormalAtk, point, (NodeType)type, this);
+                case NodeType.ATTACK:
+                    (node as AttackNode).Init(attr.Atk, point, (NodeType)type, this);
                     break;
-                case NodeType.CHARGE:
-                    (node as ChargeNode).Init(attr.ChargeAtk, point, (NodeType)type, this);
+                case NodeType.MANA:
+                    (node as ManaNode).Init(attr.Mana, point, (NodeType)type, this);
                     break;
                 case NodeType.ENERGY:
                     (node as EnergyNode).Init(attr.Energy, point, (NodeType)type, this);

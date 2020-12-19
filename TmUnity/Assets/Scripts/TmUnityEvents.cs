@@ -32,10 +32,10 @@ namespace TmUnity.Node
         public OnAtkChanged(int newAtk) => NewAtk = newAtk;
     }
 
-    class OnChargeAtkChanged : IDomainEvent
+    class OnManaChanged : IDomainEvent
     {
-        public int NewAtk { get; private set; } = 0;
-        public OnChargeAtkChanged(int newAtk) => NewAtk = newAtk;
+        public int NewMana { get; private set; } = 0;
+        public OnManaChanged(int newMana) => NewMana = newMana;
     }
 
     class OnDefChanged : IDomainEvent
@@ -48,12 +48,6 @@ namespace TmUnity.Node
     {
         public float NewEnergy { get; private set; } = 0f;
         public OnEnergyChanged(float newEnergy) => NewEnergy = newEnergy;
-    }
-
-    class OnChargeCountChange : IDomainEvent
-    {
-        public int Current { get; private set; } = 0;
-        public OnChargeCountChange(int current) => Current = current;
     }
 
     class OnComboChange : IDomainEvent
@@ -140,9 +134,6 @@ namespace TmUnity
     ///<summary>Raise event when Enemy hp reaches zero</summary>
     class OnEnemyDead : IDomainEvent { }
 
-    // ///<summary>Raise event when Enemy Attack start</summary>
-    // class OnEnemyAtkAnimStart : IDomainEvent { }
-
     ///<summary>Raise event when Def animation fin</summary>
     class OnDefAnimFin : IDomainEvent { }
 
@@ -169,11 +160,12 @@ namespace TmUnity
     class OnPlayerStatsInit : IDomainEvent
     {
         public int MaxHP { get; private set; } = 0;
-        public int MaxChargeNum { get; private set; } = 0;
-        public OnPlayerStatsInit(int maxHP, int maxChargeNum)
+        public int BasicMana { get; private set; } = 0;
+        //public int MaxChargeNum { get; private set; } = 0;
+        public OnPlayerStatsInit(int maxHP, int basicMana)
         {
             MaxHP = maxHP;
-            MaxChargeNum = maxChargeNum;
+            BasicMana = basicMana;
         }
     }
 

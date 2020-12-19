@@ -72,8 +72,6 @@ namespace TmUnity.Node
         {
             if (!isCanMove || !isDraging)
                 return;
-            if (controller.IsNodeSwaping)
-                return;
             RectTransform.position = e.position + aspectOffset;
             var res = controller.ScreenPosToPoint(RectTransform.position);
             var offset = res - Point;

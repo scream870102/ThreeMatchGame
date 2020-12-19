@@ -9,7 +9,7 @@ namespace TmUnity.Editor
     {
         [HideInInspector] public ANode Node = null;
         [HideInInspector] public RectTransform RectTransform = null;
-        public NodeType Type = NodeType.NORMAL;
+        public NodeType Type = NodeType.ATTACK;
         public Vector2Int Point = default(Vector2Int);
         void Awake()
         {

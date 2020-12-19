@@ -2,7 +2,7 @@
 using Eccentric;
 namespace TmUnity.Node
 {
-    class NormalNode : ANode
+    class AttackNode : ANode
     {
         public int Atk { get; private set; } = 0;
         public void Init(int atk, Vector2Int point, NodeType type, NodeController controller)
@@ -16,7 +16,7 @@ namespace TmUnity.Node
             if (isFXPlay)
             {
                 DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(GetCenterPos(), VFXType.ELIMINATE));
-                DomainEvents.Raise<OnPlayerVFXPlay>(new OnPlayerVFXPlay(GetCenterPos(), NodeType.NORMAL));
+                DomainEvents.Raise<OnPlayerVFXPlay>(new OnPlayerVFXPlay(GetCenterPos(), NodeType.ATTACK));
             }
             base.Eliminate();
         }

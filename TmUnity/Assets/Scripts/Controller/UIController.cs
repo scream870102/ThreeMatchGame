@@ -19,31 +19,28 @@ namespace TmUnity
         [SerializeField] Text playerHPText = null;
         [SerializeField] Slider enemyHPSlider = null;
         [SerializeField] Text enemyHPText = null;
-        [SerializeField] Text atkText = null;
-        [SerializeField] Text chargeAtkText = null;
+        //[SerializeField] Text atkText = null;
+        [SerializeField] Text manaText = null;
         [SerializeField] Text recoverText = null;
         [SerializeField] Text timeText = null;
         [SerializeField] Slider timeSlider = null;
-        [SerializeField] Text chargeCountText = null;
-        [SerializeField] Slider chargeSlider = null;
+        [SerializeField] Slider manaSlider = null;
         [SerializeField] Text comboText = null;
         [SerializeField] RawImage gameEndImage = null;
         [SerializeField] Text resultText = null;
         [SerializeField] Text recordText = null;
         [SerializeField] Text pressText = null;
         [SerializeField] Text totalDamageText = null;
-        [SerializeField] Text chargeNumPlusText = null;
         [SerializeField] Text defensePlusText = null;
         Animation comboAnim = null;
         Animation totalDamageAnim = null;
         Animation cardAnim = null;
-        int maxChargeNum = 0;
+        int maxMana = 0;
         int maxHP = 0;
         int currentHP = 0;
         int nextAttack = 0;
         int currentDef = 0;
         int currentHPRecover = 0;
-        int chargeNumPlus = 0;
 
         void Start()
         {
@@ -76,15 +73,8 @@ namespace TmUnity
             newHPSlider.value = currentHP - nextAttack;
         }
 
-        void UpdateTotalDamageText()
-        {
-            totalDamageText.text = (int.Parse(atkText.text) + int.Parse(chargeAtkText.text)).ToString();
-            totalDamageAnim.Play(PlayMode.StopAll);
-        }
-
         void UpdateLeftText()
         {
-            chargeNumPlusText.text = chargeNumPlus.ToString();
             defensePlusText.text = currentDef.ToString();
             recoverText.text = $"+{currentHPRecover}";
         }
@@ -102,9 +92,9 @@ namespace TmUnity
         void HandlePlayerStatsInit(OnPlayerStatsInit e)
         {
             maxHP = e.MaxHP;
-            maxChargeNum = e.MaxChargeNum;
-            chargeNumPlus = 0;
-            chargeSlider.maxValue = maxChargeNum;
+            maxMana = e.BasicMana;
+            manaSlider.maxValue = maxMana;
+            manaSlider.value = maxMana;
             currenHPSlider.maxValue = maxHP;
             gameEndImage.gameObject.SetActive(false);
             UpdateHPSlider();
@@ -127,14 +117,19 @@ namespace TmUnity
 
         void HandleAtkChanged(OnAtkChanged e)
         {
-            atkText.text = $"+{e.NewAtk}";
-            UpdateTotalDamageText();
+            totalDamageText.text = $"{e.NewAtk}";
+            totalDamageAnim.Play(PlayMode.StopAll);
         }
 
-        void HandleChargeAtkChanged(OnChargeAtkChanged e)
+        void HandleManaChanged(OnManaChanged e)
         {
-            chargeAtkText.text = $"+{e.NewAtk}";
-            UpdateTotalDamageText();
+            if (e.NewMana > maxMana)
+            {
+                maxMana = e.NewMana;
+                manaSlider.maxValue = maxMana;
+            }
+            manaSlider.value = e.NewMana;
+            manaText.text = $"{e.NewMana}/{maxMana}";
         }
 
         void HandleDefChanged(OnDefChanged e)
@@ -148,12 +143,6 @@ namespace TmUnity
         {
             timeText.text = $"{e.NewEnergy.ToString("0.0")} sec";
             timeSlider.maxValue = e.NewEnergy;
-        }
-
-        void HandleChargeCountChanged(OnChargeCountChange e)
-        {
-            chargeSlider.value = e.Current;
-            chargeCountText.text = $"{e.Current}/{maxChargeNum}";
         }
 
         void HandlePlayerHPChanged(OnPlayerHPChanged e)
@@ -196,7 +185,6 @@ namespace TmUnity
         void HandleNodeEliminate(OnNodeEliminate e)
         {
             currentHPRecover += e.Info.HPRecover;
-            chargeNumPlus += e.Info.ChargeNum;
             UpdateLeftText();
         }
 
@@ -221,7 +209,6 @@ namespace TmUnity
             timeSlider.value = e.MaxTime;
             timeText.text = $"{e.MaxTime.ToString("0.0")}s";
             currentHPRecover = 0;
-            chargeNumPlus = 0;
             UpdateLeftText();
 
         }
@@ -264,10 +251,9 @@ namespace TmUnity
         {
             DomainEvents.Register<OnPlayerStatsInit>(HandlePlayerStatsInit);
             DomainEvents.Register<OnAtkChanged>(HandleAtkChanged);
-            DomainEvents.Register<OnChargeAtkChanged>(HandleChargeAtkChanged);
+            DomainEvents.Register<OnManaChanged>(HandleManaChanged);
             DomainEvents.Register<OnDefChanged>(HandleDefChanged);
             DomainEvents.Register<OnEnergyChanged>(HandleEnergyChanged);
-            DomainEvents.Register<OnChargeCountChange>(HandleChargeCountChanged);
             DomainEvents.Register<OnPlayerHPChanged>(HandlePlayerHPChanged);
             DomainEvents.Register<OnComboChange>(HandleComboChange);
             DomainEvents.Register<OnMaxTimeSet>(HandleMaxTimeSet);
@@ -284,10 +270,9 @@ namespace TmUnity
         {
             DomainEvents.UnRegister<OnPlayerStatsInit>(HandlePlayerStatsInit);
             DomainEvents.UnRegister<OnAtkChanged>(HandleAtkChanged);
-            DomainEvents.UnRegister<OnChargeAtkChanged>(HandleChargeAtkChanged);
+            DomainEvents.UnRegister<OnManaChanged>(HandleManaChanged);
             DomainEvents.UnRegister<OnDefChanged>(HandleDefChanged);
             DomainEvents.UnRegister<OnEnergyChanged>(HandleEnergyChanged);
-            DomainEvents.UnRegister<OnChargeCountChange>(HandleChargeCountChanged);
             DomainEvents.UnRegister<OnPlayerHPChanged>(HandlePlayerHPChanged);
             DomainEvents.UnRegister<OnComboChange>(HandleComboChange);
             DomainEvents.UnRegister<OnMaxTimeSet>(HandleMaxTimeSet);

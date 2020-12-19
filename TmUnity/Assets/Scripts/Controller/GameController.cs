@@ -22,10 +22,9 @@ namespace TmUnity.Game
         GameState currentState = null;
         float elapsedTime = 0f;
         bool isStateInit = false;
-        bool isChargeReady = false;
         Dictionary<GS, GameState> statesDic = null;
         public float NextRoundDuration => stats.NextRoundDuration;
-        public int TotalDamage => stats.CurrentAtk + stats.CurrentChargeAtk;
+        public int CurrentAtk => stats.CurrentAtk;
         public float ExtraRoundDuration { get; set; } = 0f;
 
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
@@ -79,9 +78,9 @@ namespace TmUnity.Game
         {
             stats = new GameStats();
             resultStats = new GameResultStats();
-            DomainEvents.Raise<OnPlayerStatsInit>(new OnPlayerStatsInit(attrs.HP, attrs.MaxChargeNum));
-            isChargeReady = true;
+            DomainEvents.Raise<OnPlayerStatsInit>(new OnPlayerStatsInit(attrs.HP, attrs.BasicMana));
             stats.CurrentHP = attrs.HP;
+            stats.CurrentMana = attrs.BasicMana;
             elapsedTime = 0f;
             StartNewRound();
             var attackAttr = enemy.InitAttack();
@@ -91,13 +90,7 @@ namespace TmUnity.Game
 
         public void StartNewRound()
         {
-            if (isChargeReady)
-            {
-                isChargeReady = false;
-                stats.CurrentChargeAtk = attrs.BasicChargeAtk;
-                stats.CurrentChargeCount = 0;
-            }
-            stats.CurrentAtk = attrs.BasicNormalAtk;
+            stats.CurrentAtk = attrs.BasicAtk;
             stats.CurrentDef = attrs.BasicDef;
             stats.CurrentCombo = 0;
             ExtraRoundDuration = 0f;
@@ -112,8 +105,8 @@ namespace TmUnity.Game
 
         public void UpdateMaxDamage()
         {
-            if (TotalDamage > resultStats.MaxDamage)
-                resultStats.MaxDamage = TotalDamage;
+            if (CurrentAtk > resultStats.MaxDamage)
+                resultStats.MaxDamage = CurrentAtk;
         }
 
         public void BeAttacked(int damage)
@@ -129,18 +122,12 @@ namespace TmUnity.Game
 
         void HandleNodeEliminate(OnNodeEliminate e)
         {
-            stats.CurrentAtk += e.Info.NormalAtk;
-            stats.CurrentChargeAtk += e.Info.ChargeAtk;
-            stats.CurrentChargeCount += e.Info.ChargeNum;
+            stats.CurrentAtk += e.Info.Atk;
+            stats.CurrentMana += e.Info.Mana;
             ExtraRoundDuration += e.Info.EnergyTime;
             stats.CurrentDef += e.Info.Def;
             stats.CurrentHP += e.Info.HPRecover;
             stats.CurrentCombo += 1;
-            if (stats.CurrentChargeCount >= attrs.MaxChargeNum && !isChargeReady)
-            {
-                isChargeReady = true;
-                stats.CurrentChargeAtk += attrs.MaxChargeAtk;
-            }
         }
 
         void HandlePlayerDead(OnPlayerDead e) => EndGame(false);
@@ -255,7 +242,7 @@ namespace TmUnity.Game
             await controller.CalculateResultAsync();
             controller.UpdateMaxDamage();
             //NOTE: if enemy dead here it will play dead animation and game controller will receive the message and will enter END state
-            DomainEvents.Raise<OnEnemyBeAttacked>(new OnEnemyBeAttacked(controller.TotalDamage));
+            DomainEvents.Raise<OnEnemyBeAttacked>(new OnEnemyBeAttacked(controller.CurrentAtk));
             isFin = true;
         }
 

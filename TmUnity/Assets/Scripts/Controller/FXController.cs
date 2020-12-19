@@ -13,7 +13,7 @@ namespace TmUnity
         [SerializeField] GameObject holyPrefab = null;
         [SerializeField] GameObject shinePrefab = null;
         [SerializeField] RectTransform gamePanel = null;
-        [SerializeField] RectTransform enemyRectTF = null;
+        [SerializeField] RectTransform targetRectTF = null;
         [SerializeField] RectTransform defRectTF = null;
         [SerializeField] RectTransform energyRectTF = null;
         [SerializeField] float fireballVel = 0f;
@@ -22,7 +22,7 @@ namespace TmUnity
         async void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
-                await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(new Vector3(55.7f, 454.1f, 0f), enemyRectTF.position, starColors[0], fireballVel);
+                await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(new Vector3(55.7f, 454.1f, 0f), targetRectTF.position, starColors[0], fireballVel);
         }
 #endif
 
@@ -46,11 +46,11 @@ namespace TmUnity
         {
             switch (e.Type)
             {
-                case NodeType.NORMAL:
-                    await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(e.StartPos, enemyRectTF.position, starColors[(int)e.Type], fireballVel);
+                case NodeType.ATTACK:
+                    await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(e.StartPos, targetRectTF.position, starColors[(int)e.Type], fireballVel);
                     break;
-                case NodeType.CHARGE:
-                    await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(e.StartPos, enemyRectTF.position, starColors[(int)e.Type], fireballVel);
+                case NodeType.MANA:
+                    await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(e.StartPos, targetRectTF.position, starColors[(int)e.Type], fireballVel);
                     break;
                 case NodeType.DEFENSE:
                     await LeanPool.Spawn(starPrefab, gamePanel).GetComponent<PlayerVFX>().Attack(e.StartPos, defRectTF.position, starColors[(int)e.Type], fireballVel);

@@ -2,8 +2,8 @@
 {
     enum NodeType
     {
-        NORMAL,
-        CHARGE,
+        ATTACK,
+        MANA,
         ENERGY,
         DEFENSE,
         CHEST,
@@ -15,7 +15,6 @@
         ENERGY_UP,
         ATK_UP,
         DEF_UP,
-        CHARGE_COUNT_PLUS,
     }
 
 }
