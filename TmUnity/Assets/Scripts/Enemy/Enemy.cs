@@ -61,7 +61,7 @@ namespace TmUnity
         {
             var readyAttacks = attacks.FindAll(a => a.IsReady);
             currentAttack = readyAttacks[Random.Range(0, readyAttacks.Count)];
-            DomainEvents.Raise<OnEnemyAtkAnimFin>(new OnEnemyAtkAnimFin(currentAttack.Attr));
+            DomainEvents.Raise<OnEnemyGetNewAttack>(new OnEnemyGetNewAttack(currentAttack.Attr));
             return currentAttack.Attr;
         }
 
@@ -96,7 +96,6 @@ namespace TmUnity
 
         public void PlayAttackAnim()
         {
-            //DomainEvents.Raise<OnEnemyAtkAnimStart>(new OnEnemyAtkAnimStart());
             parent.SkillText.text = attr.AnimTrigger;
             parent.SkillDamageText.text = attr.Atk.ToString();
             anim.SetTrigger(attr.AnimTrigger);

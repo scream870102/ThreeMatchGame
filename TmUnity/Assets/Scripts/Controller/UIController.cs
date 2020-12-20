@@ -7,6 +7,7 @@ namespace TmUnity
 {
     class UIController : MonoBehaviour
     {
+        [SerializeField] int defAnimDelayBetweenHPSlider = 2000;
         [SerializeField] Animation gamePanelAnim = null;
         [SerializeField] GameObject leftInfoObject = null;
         [SerializeField] GameObject rightInfoObject = null;
@@ -19,7 +20,6 @@ namespace TmUnity
         [SerializeField] Text playerHPText = null;
         [SerializeField] Slider enemyHPSlider = null;
         [SerializeField] Text enemyHPText = null;
-        //[SerializeField] Text atkText = null;
         [SerializeField] Text manaText = null;
         [SerializeField] Text recoverText = null;
         [SerializeField] Text timeText = null;
@@ -32,9 +32,12 @@ namespace TmUnity
         [SerializeField] Text pressText = null;
         [SerializeField] Text totalDamageText = null;
         [SerializeField] Text defensePlusText = null;
+        [SerializeField] GameObject skillPanel = null;
         Animation comboAnim = null;
         Animation totalDamageAnim = null;
         Animation cardAnim = null;
+        Animation defenseAnim = null;
+        Animation recoverAnim = null;
         int maxMana = 0;
         int maxHP = 0;
         int currentHP = 0;
@@ -47,12 +50,14 @@ namespace TmUnity
             comboAnim = comboText.GetComponent<Animation>();
             totalDamageAnim = totalDamageText.GetComponent<Animation>();
             cardAnim = cardText.transform.parent.GetComponent<Animation>();
+            defenseAnim = defensePlusText.GetComponent<Animation>();
+            recoverAnim = recoverText.GetComponent<Animation>();
         }
 
         async void DefAnimFinAE()
         {
             DomainEvents.Raise<OnDefAnimFin>(new OnDefAnimFin());
-            await Task.Delay(2000);
+            await Task.Delay(defAnimDelayBetweenHPSlider);
             UpdateHPSlider();
         }
 
@@ -117,8 +122,9 @@ namespace TmUnity
 
         void HandleAtkChanged(OnAtkChanged e)
         {
+            if (int.Parse(totalDamageText.text) != e.NewAtk)
+                totalDamageAnim.Play(PlayMode.StopAll);
             totalDamageText.text = $"{e.NewAtk}";
-            totalDamageAnim.Play(PlayMode.StopAll);
         }
 
         void HandleManaChanged(OnManaChanged e)
@@ -134,6 +140,8 @@ namespace TmUnity
 
         void HandleDefChanged(OnDefChanged e)
         {
+            if (currentDef != e.NewDef)
+                defenseAnim.Play();
             currentDef = e.NewDef;
             UpdateLeftText();
             UpdateHPSlider();
@@ -184,7 +192,10 @@ namespace TmUnity
         // Init Animate State
         void HandleNodeEliminate(OnNodeEliminate e)
         {
+            var oldHpRecover = currentHPRecover;
             currentHPRecover += e.Info.HPRecover;
+            if (oldHpRecover != currentHPRecover)
+                recoverAnim.Play();
             UpdateLeftText();
         }
 
@@ -194,7 +205,7 @@ namespace TmUnity
         #region パズル移動前
 
         //End Enemy State
-        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e)
+        void HandleEnemyAtkAnimFin(OnEnemyGetNewAttack e)
         {
             nextAttack = e.Attr.Atk;
             enemyInfoText.text = $"{e.Attr.AnimTrigger} coming\n{e.Attr.Atk} damage";
@@ -231,8 +242,10 @@ namespace TmUnity
                     enemyInfoShadowText.enabled = true;
                     cardText.text = "YOUR TURN";
                     cardAnim.Play(PlayMode.StopAll);
+                    skillPanel.SetActive(true);
                     break;
                 case GameState.ACTION:
+                    skillPanel.SetActive(false);
                     enemyInfoText.enabled = false;
                     enemyInfoShadowText.enabled = false;
                     EnablePlayerInfo(true);
@@ -261,7 +274,7 @@ namespace TmUnity
             DomainEvents.Register<OnEnemyHPChanged>(HandleEnemyHPChanged);
             DomainEvents.Register<OnGameStart>(HandleGameStart);
             DomainEvents.Register<OnGameEnd>(HandleGameEnd);
-            DomainEvents.Register<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.Register<OnEnemyGetNewAttack>(HandleEnemyAtkAnimFin);
             DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
         }
@@ -280,7 +293,7 @@ namespace TmUnity
             DomainEvents.UnRegister<OnEnemyHPChanged>(HandleEnemyHPChanged);
             DomainEvents.UnRegister<OnGameStart>(HandleGameStart);
             DomainEvents.UnRegister<OnGameEnd>(HandleGameEnd);
-            DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.UnRegister<OnEnemyGetNewAttack>(HandleEnemyAtkAnimFin);
             DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
         }

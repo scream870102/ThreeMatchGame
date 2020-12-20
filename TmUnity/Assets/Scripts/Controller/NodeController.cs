@@ -12,6 +12,9 @@ namespace TmUnity.Node
 {
     class NodeController : MonoBehaviour
     {
+        [SerializeField] int eliminateAnimOffset = 300;
+        [SerializeField] int spawnNodeOffset = 15;
+        [SerializeField] int spawnNodeFinDelay = 200;
         [SerializeField] float nodeFallenTime = .05f;
         [SerializeField] Vector2Int boardSize = new Vector2Int(6, 8);
         [SerializeField] GameObject[] nodePrefabs = null;
@@ -51,6 +54,19 @@ namespace TmUnity.Node
         void HandleNodeDragBegin(OnNodeDragBegin e) => currentNode = e.Node;
 
         void HandleNodeDragEnd(OnNodeDragEnd e) => currentNode = null;
+
+        public void TransferNodeType(NodeType from, NodeType to)
+        {
+            var toTransferNodes = new List<ANode>();
+            foreach (var node in ActiveNodes)
+                if (node.Type == from) toTransferNodes.Add(node);
+            foreach (var node in toTransferNodes)
+            {
+                var point = node.Point;
+                LeanPool.Despawn(node);
+                SpawnNode(point.x, point.y, to);
+            }
+        }
 
         public void ForceEndDrag() => currentNode?.ForceEndDrag();
 
@@ -195,7 +211,7 @@ namespace TmUnity.Node
                 if (isAsync)
                 {
                     DomainEvents.Raise<OnNodeEliminate>(new OnNodeEliminate(o.Key));
-                    await Task.Delay(300);
+                    await Task.Delay(eliminateAnimOffset);
                 }
             }
         }
@@ -220,15 +236,20 @@ namespace TmUnity.Node
             for (int i = 0; i < types.Length % typeNum; i++)
                 types[types.Length - i - 1] = (NodeType)Random.Range(0, typeNum);
             var shuffleTypes = types.ToList().Shuffle();
+            var nodeSpawns = new List<ANode>();
             for (int i = 0; i < deactiveNodes.Count; i++)
             {
                 isAnyNodeSpawn = true;
                 Vector2Int point = deactiveNodes[i].Point;
                 LeanPool.Despawn(deactiveNodes[i]);
-                SpawnNode(point.x, point.y, shuffleTypes[i]);
+                nodeSpawns.Add(SpawnNode(point.x, point.y, shuffleTypes[i]));
                 if (isAsync)
-                    await Task.Delay(25);
+                    await Task.Delay(spawnNodeOffset);
             }
+            if (isAsync)
+                await Task.Delay(spawnNodeFinDelay);
+            nodeSpawns.ForEach(node => node.CorrectPos());
+
             return isAnyNodeSpawn;
         }
 
@@ -277,7 +298,7 @@ namespace TmUnity.Node
             return eliminateInfo;
         }
 
-        void SpawnNode(int x, int y, NodeType type)
+        ANode SpawnNode(int x, int y, NodeType type)
         {
 
             var node = LeanPool.Spawn(nodePrefabs[(int)type], boardParent).GetComponent<ANode>();
@@ -304,6 +325,7 @@ namespace TmUnity.Node
                     (node as ChestNode).Init(attr.ChestNodeAttr, (ChestType)chestType, point, (NodeType)type, this);
                     break;
             }
+            return node;
         }
     }
 }

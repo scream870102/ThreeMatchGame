@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TmUnity.Node;
+using TmUnity.Skill;
 using Eccentric.Utils;
 using Eccentric;
 using GS = TmUnity.GameState;
-namespace TmUnity.Game
+namespace TmUnity
 {
     class GameController : MonoBehaviour
     {
@@ -16,16 +17,18 @@ namespace TmUnity.Game
 #endif
         [SerializeField] PlayerAttr attrs = null;
         [SerializeField] Enemy enemy = null;
+        [SerializeField] List<ASkill> skills = null;
         [ReadOnly] [SerializeField] GameStats stats = null;
         [ReadOnly] [SerializeField] GameResultStats resultStats = null;
         NodeController nodeController = null;
-        GameState currentState = null;
+        AGameState currentState = null;
         float elapsedTime = 0f;
         bool isStateInit = false;
-        Dictionary<GS, GameState> statesDic = null;
+        Dictionary<GS, AGameState> statesDic = null;
         public float NextRoundDuration => stats.NextRoundDuration;
         public int CurrentAtk => stats.CurrentAtk;
         public float ExtraRoundDuration { get; set; } = 0f;
+        public bool IsEnemyStop { get; set; } = false;
 
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
 
@@ -33,7 +36,7 @@ namespace TmUnity.Game
         {
             nodeController.InitBoard();
             nodeController.CalculateResultWithoutAnim();
-            statesDic = new Dictionary<GS, GameState>(){
+            statesDic = new Dictionary<GS, AGameState>(){
                 {GS.START, new StartState(this)},
                 {GS.END, new EndState(this)},
                 {GS.WAIT, new WaitState(this)},
@@ -41,6 +44,7 @@ namespace TmUnity.Game
                 {GS.ANIMATE, new AnimateState(this)},
                 {GS.ENEMY, new EnemyState(enemy,this)}
             };
+            skills.ForEach(skill => skill.Init(this));
             NewState(GS.START);
         }
 
@@ -93,7 +97,10 @@ namespace TmUnity.Game
             stats.CurrentAtk = attrs.BasicAtk;
             stats.CurrentDef = attrs.BasicDef;
             stats.CurrentCombo = 0;
+            //NOTE: This is for active the mana chage event
+            stats.CurrentMana = stats.CurrentMana;
             ExtraRoundDuration = 0f;
+
         }
 
         public void CaculateNextRoundDuration()
@@ -116,9 +123,18 @@ namespace TmUnity.Game
             stats.CurrentHP -= newDamage;
         }
 
+        public void UseSkill(string skillName, int manaCost)
+        {
+            stats.CurrentMana -= manaCost;
+        }
+
+        public void Heal(int healAmount) => stats.CurrentHP += healAmount;
+
         public void ForceEndDrag() => nodeController.ForceEndDrag();
 
         public void CheckAllResult() => nodeController.CheckAllResult();
+
+        public void TransferNodeType(NodeType from, NodeType to) => nodeController.TransferNodeType(from, to);
 
         void HandleNodeEliminate(OnNodeEliminate e)
         {
@@ -150,7 +166,7 @@ namespace TmUnity.Game
 
     }
 
-    class StartState : GameState
+    class StartState : AGameState
     {
         public StartState(GameController controller) : base(controller) { }
 
@@ -166,7 +182,7 @@ namespace TmUnity.Game
 
     }
 
-    class EndState : GameState
+    class EndState : AGameState
     {
         public EndState(GameController controller) : base(controller) { }
 
@@ -180,7 +196,7 @@ namespace TmUnity.Game
         public override void End() { }
     }
 
-    class WaitState : GameState
+    class WaitState : AGameState
     {
         public WaitState(GameController controller) : base(controller) => DomainEvents.Register<OnNodeDragBegin>(HandleNodeDragBegin);
 
@@ -200,7 +216,7 @@ namespace TmUnity.Game
 
     }
 
-    class ActionState : GameState
+    class ActionState : AGameState
     {
         ScaledTimer timer = null;
 
@@ -230,7 +246,7 @@ namespace TmUnity.Game
         void HandleNodeDragEnd(OnNodeDragEnd e) => controller.NewState(GS.ANIMATE);
     }
 
-    class AnimateState : GameState
+    class AnimateState : AGameState
     {
         bool isFin = false;
         public AnimateState(GameController controller) : base(controller) { }
@@ -255,7 +271,7 @@ namespace TmUnity.Game
         public override void End() { }
     }
 
-    class EnemyState : GameState
+    class EnemyState : AGameState
     {
         Enemy enemy = null;
         float extraTime = 0f;
@@ -264,24 +280,36 @@ namespace TmUnity.Game
 
         public override void Init()
         {
-            DomainEvents.Register<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.Register<OnEnemyGetNewAttack>(HandleEnemyGetNewAttack);
             DomainEvents.Register<OnDefAnimFin>(HandleDefAnimFin);
             DomainEvents.Register<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
             //NOTE: enemy will play attack animation and will raise OnPlayerBeAttacked if player hp gets zero hp stats will raise OnPlayerDead
             // Controller will receive message and enter END state
-            enemy.Attack();
+            if (!controller.IsEnemyStop)
+                enemy.Attack();
+
         }
 
-        public override void Tick() { }
+        public override void Tick()
+        {
+            //NOTE: Should Invoke NewState in Init  otherwise it won't call end function 
+            if (controller.IsEnemyStop)
+            {
+                controller.IsEnemyStop = false;
+                DomainEvents.Raise<OnVFXPlay>(new OnVFXPlay(Vector3.zero, VFXType.STARE));
+                controller.ExtraRoundDuration += extraTime;
+                controller.NewState(GS.WAIT);
+            }
+        }
 
         public override void End()
         {
-            DomainEvents.UnRegister<OnEnemyAtkAnimFin>(HandleEnemyAtkAnimFin);
+            DomainEvents.UnRegister<OnEnemyGetNewAttack>(HandleEnemyGetNewAttack);
             DomainEvents.UnRegister<OnDefAnimFin>(HandleDefAnimFin);
             DomainEvents.UnRegister<OnPlayerBeAttacked>(HandlePlayerBeAttacked);
         }
 
-        void HandleEnemyAtkAnimFin(OnEnemyAtkAnimFin e) => extraTime = e.Attr.Time;
+        void HandleEnemyGetNewAttack(OnEnemyGetNewAttack e) => extraTime = e.Attr.Time;
 
         void HandleDefAnimFin(OnDefAnimFin e)
         {
@@ -293,10 +321,10 @@ namespace TmUnity.Game
         void HandlePlayerBeAttacked(OnPlayerBeAttacked e) => atk = e.Atk;
     }
 
-    abstract class GameState : IState
+    abstract class AGameState : IState
     {
         protected GameController controller { get; private set; } = null;
-        public GameState(GameController controller) => this.controller = controller;
+        public AGameState(GameController controller) => this.controller = controller;
         public abstract void Init();
         public abstract void Tick();
         public abstract void End();

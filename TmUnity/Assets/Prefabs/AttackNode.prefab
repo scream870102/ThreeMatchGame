@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 927536695285434558}
   - component: {fileID: 114673991466152212}
   - component: {fileID: 99760982545049664}
+  - component: {fileID: 5219553636047872914}
   m_Layer: 5
   m_Name: AttackNode
   m_TagString: Untagged
@@ -28,7 +29,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6252862563814508403}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -118,3 +119,19 @@ MonoBehaviour:
   RectTransform: {fileID: 0}
   Type: 0
   Point: {x: 0, y: 0}
+--- !u!111 &5219553636047872914
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252862563814508403}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 1430d3c18c0363a4aa6e6846ecdfd1d3, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 1430d3c18c0363a4aa6e6846ecdfd1d3, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0

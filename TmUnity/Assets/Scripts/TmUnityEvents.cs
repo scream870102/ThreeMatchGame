@@ -139,10 +139,10 @@ namespace TmUnity
 
 
     ///<summary>When enemy attack animation end. A animation event should be invoke,In that method this event should be raise</summary>
-    class OnEnemyAtkAnimFin : IDomainEvent
+    class OnEnemyGetNewAttack : IDomainEvent
     {
         public AttackAttr Attr { get; private set; } = null;
-        public OnEnemyAtkAnimFin(AttackAttr attr) => Attr = attr;
+        public OnEnemyGetNewAttack(AttackAttr attr) => Attr = attr;
     }
 
     #endregion

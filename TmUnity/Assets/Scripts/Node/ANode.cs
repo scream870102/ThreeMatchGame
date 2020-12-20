@@ -16,6 +16,7 @@ namespace TmUnity.Node
     {
         [SerializeField] Sprite normalSprite = null;
         [SerializeField] Sprite outlineSprite = null;
+        Animation anim = null;
         Image image = null;
         Vector2Int point = default(Vector2Int);
         Vector2 aspectOffset = default(Vector2);
@@ -41,6 +42,7 @@ namespace TmUnity.Node
         {
             RectTransform = GetComponent<RectTransform>();
             image = GetComponent<Image>();
+            anim = GetComponent<Animation>();
         }
 
         virtual protected void Init(Vector2Int point, NodeType type, NodeController controller)
@@ -54,6 +56,7 @@ namespace TmUnity.Node
             aspectOffset = new Vector2(-halfSize.x * controller.AspectFactor.x, halfSize.y * controller.AspectFactor.y);
             IsActive = true;
             gameObject.SetActive(true);
+            anim.Play();
         }
 
         protected Vector3 GetCenterPos() => RectTransform.position - (Vector3)aspectOffset;
@@ -113,8 +116,6 @@ namespace TmUnity.Node
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
 
-
-
         public void CheckResult(ref List<ANode> founds)
         {
             founds.Add(this);
@@ -137,7 +138,7 @@ namespace TmUnity.Node
             CheckNextNode(nextPoint, ref founds);
         }
 
-        void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
+        public void CorrectPos() => RectTransform.anchoredPosition = ToAnchoredPosition();
 
         Vector2 ToAnchoredPosition() => new Vector2(point.x * size.x, -point.y * size.y);
 

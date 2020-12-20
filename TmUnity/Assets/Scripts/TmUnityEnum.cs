@@ -35,5 +35,6 @@ namespace TmUnity
         ELIMINATE,
         HEAL,
         BUFF,
+        STARE,
     }
 }
