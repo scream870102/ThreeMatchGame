@@ -12,25 +12,14 @@
 
 ## Memo
 //TODO:
-- 敵人的攻擊
-- 動畫
-    - Player
-        - **Node Eliminate** MagicBarrier
-        - **Hit** FireBall2
-        - **Heal** HolyExplosion
-        - **Dead** FireCast
-    - Enemy
-        - **Hit**
-            - Poison Claw
-            - Ice Cast
-        - **Dead** Explosion 3
-- 生成動畫
-- UI美術調整
-- 主選單
-- 頁面跳轉
+
+- 數值平衡
+- 敵人的新招式
 - 最高分系統
-- 音效
 - Combo加成
+- 音效
+
+
 
 
 
@@ -54,6 +43,23 @@
 - 定位調整
 - 落下動畫
 - 沒消珠的BUG
+- 敵人的攻擊
+- 動畫
+    - Player
+        - **Node Eliminate** MagicBarrier
+        - **Hit** FireBall2
+        - **Heal** HolyExplosion
+        - **Dead** FireCast
+    - Enemy
+        - **Hit**
+            - Poison Claw
+            - Ice Cast
+        - **Dead** Explosion 3
+- 生成動畫
+- UI美術調整
+- 主選單
+- 頁面跳轉
+- 最高分系統
 
 
 //TMP

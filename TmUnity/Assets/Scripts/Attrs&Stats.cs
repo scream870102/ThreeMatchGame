@@ -82,12 +82,30 @@ namespace TmUnity
     [System.Serializable]
     class GameStats
     {
-        [ReadOnly] [SerializeField] int currentAtk = 0;
-        [ReadOnly] [SerializeField] int currentMana = 0;
-        [ReadOnly] [SerializeField] int currentDef = 0;
-        [ReadOnly] [SerializeField] float nextRoundDuration = 0f;
-        [ReadOnly] [SerializeField] int currentHP = 0;
-        [ReadOnly] [SerializeField] int currentCombo = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] int currentAtk = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] int currentMana = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] int currentDef = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] float nextRoundDuration = 0f;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] int currentHP = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+# endif
+        [SerializeField] int currentCombo = 0;
         public int CurrentAtk
         {
             get => currentAtk;

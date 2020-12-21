@@ -18,8 +18,8 @@ namespace TmUnity
         [SerializeField] PlayerAttr attrs = null;
         [SerializeField] Enemy enemy = null;
         [SerializeField] List<ASkill> skills = null;
-        [ReadOnly] [SerializeField] GameStats stats = null;
-        [ReadOnly] [SerializeField] GameResultStats resultStats = null;
+        [SerializeField] GameStats stats = null;
+        [SerializeField] GameResultStats resultStats = null;
         NodeController nodeController = null;
         AGameState currentState = null;
         float elapsedTime = 0f;
@@ -74,7 +74,9 @@ namespace TmUnity
             currentState?.End();
             isStateInit = false;
             currentState = statesDic[nextState];
+#if UNITY_EDITOR
             state = nextState;
+#endif
             DomainEvents.Raise<OnGameStateChange>(new OnGameStateChange(nextState));
         }
 

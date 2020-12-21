@@ -7,7 +7,10 @@ namespace TmUnity
 {
     class Enemy : MonoBehaviour
     {
-        [ReadOnly] [SerializeField] int currentHP = 0;
+#if UNITY_EDITOR
+        [ReadOnly]
+#endif
+        [SerializeField] int currentHP = 0;
         [SerializeField] List<Attack> attacks = new List<Attack>();
         [SerializeField] int maxHP = 0;
         public Text SkillText { get; private set; } = null;
