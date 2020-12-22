@@ -80,14 +80,21 @@ namespace TmUnity.Node
             }
         }
 
-        async public Task CalculateResultAsync()
+        async public Task<int> CalculateResultAsync()
         {
+
             var infos = CheckAllResult();
+            var currentCombo = infos.Count;
             await PlayEliminateAnimAsync(infos);
             await UpdateBoardPositionAsync();
             var isAnyNodeSpawn = await AddNewNodeAsync();
             if (isAnyNodeSpawn)
-                await CalculateResultAsync();
+            {
+                var otherCombo = CalculateResultAsync();
+                await otherCombo;
+                return currentCombo + otherCombo.Result;
+            }
+            return currentCombo;
         }
 
         public Dictionary<EliminateInfo, List<ANode>> CheckAllResult()

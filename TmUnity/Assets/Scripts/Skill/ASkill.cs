@@ -9,16 +9,14 @@ using TmUnity;
 
 namespace TmUnity.Skill
 {
-    abstract class ASkill : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IPointerClickHandler
+    abstract class ASkill : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         const float expositionCountDown = .5f;
-        const int panelCloseDelay = 100;
         [SerializeField] string skillName = "";
         [SerializeField] protected int manaCost = 0;
         [SerializeField] string exposition = "";
         [SerializeField] Color disableColor = new Color(.5f, .5f, .5f, 1f);
         RawImage image = null;
-        bool isPointerDown = false;
         ScaledTimer expositionPanelTimer = null;
         GameObject expositonPanel = null;
         bool isUseable = false;
@@ -38,35 +36,20 @@ namespace TmUnity.Skill
             SetExpositionText(expositionText, skillName, manaCost, exposition);
         }
 
-        void Update()
-        {
-            if (isPointerDown && expositionPanelTimer.IsFinished)
-                expositonPanel.SetActive(true);
-        }
-
         virtual public void Init(GameController controller) => this.controller = controller;
-
-        async public void OnPointerUp(PointerEventData e)
-        {
-            isPointerDown = false;
-            await Task.Delay(panelCloseDelay);
-            expositonPanel.SetActive(false);
-        }
-
-        public void OnPointerDown(PointerEventData e)
-        {
-            isPointerDown = true;
-            expositionPanelTimer.Reset();
-        }
 
         public void OnPointerClick(PointerEventData e)
         {
-            if (!expositonPanel.activeSelf && isUseable)
+            if (isUseable)
             {
                 controller?.UseSkill(skillName, manaCost);
                 UseSkill();
             }
         }
+
+        public void OnPointerEnter(PointerEventData e) => expositonPanel.SetActive(true);
+
+        public void OnPointerExit(PointerEventData e) => expositonPanel.SetActive(false);
 
         void HandleManaChanged(OnManaChanged e)
         {

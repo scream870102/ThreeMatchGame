@@ -26,6 +26,7 @@ namespace TmUnity
         [SerializeField] Slider timeSlider = null;
         [SerializeField] Slider manaSlider = null;
         [SerializeField] Text comboText = null;
+        //TODO:[SerializeField] Text comboFactorText = null;
         [SerializeField] RawImage gameEndImage = null;
         [SerializeField] Text resultText = null;
         [SerializeField] Text recordText = null;
@@ -199,6 +200,12 @@ namespace TmUnity
             UpdateLeftText();
         }
 
+        //TODO:
+        // void HandleComboFactorChange(OnComboFactorChange e)
+        // {
+        //     comboFactorText.text = $"{e.Factor.ToString("0.00")}%";
+        // }
+
         #endregion
 
 
@@ -277,6 +284,7 @@ namespace TmUnity
             DomainEvents.Register<OnEnemyGetNewAttack>(HandleEnemyAtkAnimFin);
             DomainEvents.Register<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.Register<OnGameStateChange>(HandleGameStateChange);
+            //TODO:DomainEvents.Register<OnComboFactorChange>(HandleComboFactorChange);
         }
 
         void OnDisable()
@@ -296,6 +304,7 @@ namespace TmUnity
             DomainEvents.UnRegister<OnEnemyGetNewAttack>(HandleEnemyAtkAnimFin);
             DomainEvents.UnRegister<OnNodeEliminate>(HandleNodeEliminate);
             DomainEvents.UnRegister<OnGameStateChange>(HandleGameStateChange);
+            //TODO:DomainEvents.UnRegister<OnComboFactorChange>(HandleComboFactorChange);
         }
 
     }

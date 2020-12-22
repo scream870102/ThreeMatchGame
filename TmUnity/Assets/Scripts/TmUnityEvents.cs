@@ -56,6 +56,13 @@ namespace TmUnity.Node
         public OnComboChange(int combos) => Combos = combos;
     }
 
+    //TODO:
+    // class OnComboFactorChange : IDomainEvent
+    // {
+    //     public float Factor { get; private set; } = 0f;
+    //     public OnComboFactorChange(float factor) => Factor = factor;
+    // }
+
     #endregion
 }
 

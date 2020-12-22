@@ -15,6 +15,7 @@ namespace TmUnity
 #if UNITY_EDITOR
         [ReadOnly] [SerializeField] GS state = default(GS);
 #endif
+        //[SerializeField] float comboFactor = .1f;
         [SerializeField] PlayerAttr attrs = null;
         [SerializeField] Enemy enemy = null;
         [SerializeField] List<ASkill> skills = null;
@@ -29,6 +30,7 @@ namespace TmUnity
         public int CurrentAtk => stats.CurrentAtk;
         public float ExtraRoundDuration { get; set; } = 0f;
         public bool IsEnemyStop { get; set; } = false;
+        public bool IsGameEnd { get; private set; } = false;
 
         void Awake() => nodeController = GameObject.Find("NodeController").GetComponent<NodeController>();
 
@@ -62,12 +64,13 @@ namespace TmUnity
 
         void EndGame(bool isWin)
         {
+            IsGameEnd = true;
             NewState(GS.END);
             resultStats.ElapsedTime = elapsedTime;
             DomainEvents.Raise<OnGameEnd>(new OnGameEnd(resultStats, isWin));
         }
 
-        async public Task CalculateResultAsync() => await nodeController.CalculateResultAsync();
+        async public Task<int> CalculateResultAsync() => await nodeController.CalculateResultAsync();
 
         public void NewState(GS nextState)
         {
@@ -84,6 +87,7 @@ namespace TmUnity
         {
             stats = new GameStats();
             resultStats = new GameResultStats();
+            IsGameEnd = false;
             DomainEvents.Raise<OnPlayerStatsInit>(new OnPlayerStatsInit(attrs.HP, attrs.BasicMana));
             stats.CurrentHP = attrs.HP;
             stats.CurrentMana = attrs.BasicMana;
@@ -102,6 +106,8 @@ namespace TmUnity
             //NOTE: This is for active the mana chage event
             stats.CurrentMana = stats.CurrentMana;
             ExtraRoundDuration = 0f;
+            //TODO:
+            //DomainEvents.Raise<OnComboFactorChange>(new OnComboFactorChange(0f));
 
         }
 
@@ -125,10 +131,7 @@ namespace TmUnity
             stats.CurrentHP -= newDamage;
         }
 
-        public void UseSkill(string skillName, int manaCost)
-        {
-            stats.CurrentMana -= manaCost;
-        }
+        public void UseSkill(string skillName, int manaCost) => stats.CurrentMana -= manaCost;
 
         public void Heal(int healAmount) => stats.CurrentHP += healAmount;
 
@@ -146,6 +149,11 @@ namespace TmUnity
             stats.CurrentDef += e.Info.Def;
             stats.CurrentHP += e.Info.HPRecover;
             stats.CurrentCombo += 1;
+
+            //TODO:
+            // var factor = 1f + (float)stats.CurrentCombo * comboFactor;
+            // DomainEvents.Raise<OnComboFactorChange>(new OnComboFactorChange(factor));
+            // stats.CurrentAtk = stats.CurrentAtk + Mathf.RoundToInt((float)e.Info.Atk * factor);
         }
 
         void HandlePlayerDead(OnPlayerDead e) => EndGame(false);
@@ -210,7 +218,11 @@ namespace TmUnity
             controller.StartNewRound();
         }
 
-        public override void Tick() { }
+        public override void Tick()
+        {
+            if (controller.IsGameEnd && Input.anyKeyDown)
+                SceneManager.LoadScene(0);
+        }
 
         public override void End() { }
 
@@ -257,7 +269,8 @@ namespace TmUnity
         {
             isFin = false;
             controller.CheckAllResult();
-            await controller.CalculateResultAsync();
+            var res = controller.CalculateResultAsync();
+            await res;
             controller.UpdateMaxDamage();
             //NOTE: if enemy dead here it will play dead animation and game controller will receive the message and will enter END state
             DomainEvents.Raise<OnEnemyBeAttacked>(new OnEnemyBeAttacked(controller.CurrentAtk));
@@ -321,6 +334,7 @@ namespace TmUnity
         }
 
         void HandlePlayerBeAttacked(OnPlayerBeAttacked e) => atk = e.Atk;
+
     }
 
     abstract class AGameState : IState

@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Attack Transfer
-  manaCost: 150
+  manaCost: 450
   exposition: Transfer Defense Puzzle to Attack Puzzle
   disableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &44872638
@@ -818,11 +818,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   attrs:
-    basicAtk: 100
-    basicMana: 460
-    basicDef: 100
-    basicEnergy: 7
-    hp: 460
+    basicAtk: 10
+    basicMana: 500
+    basicDef: 10
+    basicEnergy: 3
+    hp: 500
   enemy: {fileID: 1734788086}
   skills:
   - {fileID: 7981115}
@@ -1859,7 +1859,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -850}
-  m_SizeDelta: {x: 500, y: 500}
+  m_SizeDelta: {x: 800, y: 800}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &267990047
 MonoBehaviour:
@@ -3193,7 +3193,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -1155}
+  m_AnchoredPosition: {x: 0, y: -1342.7}
   m_SizeDelta: {x: 1080, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &499842483
@@ -3270,8 +3270,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -917.5}
-  m_SizeDelta: {x: 740, y: 1165}
+  m_AnchoredPosition: {x: 0, y: -952.5}
+  m_SizeDelta: {x: 740, y: 1185}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &504144690
 MonoBehaviour:
@@ -3560,7 +3560,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -1280}
+  m_AnchoredPosition: {x: 0, y: -1468}
   m_SizeDelta: {x: 1080, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &532952311
@@ -4658,7 +4658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Defense Transfer
-  manaCost: 250
+  manaCost: 450
   exposition: Transfer Attack Puzzle to Defense Puzzle
   disableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &795856137
@@ -5575,8 +5575,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -235, y: -37.5}
-  m_SizeDelta: {x: 230, y: 55}
+  m_AnchoredPosition: {x: -285, y: 0}
+  m_SizeDelta: {x: 330, y: 29.999998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1038127426
 MonoBehaviour:
@@ -5771,8 +5771,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -235, y: -37.5}
-  m_SizeDelta: {x: 230, y: 55}
+  m_AnchoredPosition: {x: -285, y: 0}
+  m_SizeDelta: {x: 330, y: 29.999998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1055779009
 MonoBehaviour:
@@ -6627,7 +6627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -7133,7 +7133,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.7075472, g: 0.7075472, b: 0.7075472, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -7657,7 +7657,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -7870,7 +7870,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
+  m_AnchoredPosition: {x: 0, y: -95}
   m_SizeDelta: {x: 285, y: 245}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1463052112
@@ -8209,8 +8209,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -235, y: -37.5}
-  m_SizeDelta: {x: 230, y: 55}
+  m_AnchoredPosition: {x: -285, y: 0}
+  m_SizeDelta: {x: 330, y: 29.999998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1520416807
 MonoBehaviour:
@@ -8745,7 +8745,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Stare
-  manaCost: 30
+  manaCost: 600
   exposition: Make Enemy can't move for one round
   disableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &1630866002
@@ -8866,7 +8866,7 @@ MonoBehaviour:
   eliminateAnimOffset: 200
   spawnNodeOffset: 5
   spawnNodeFinDelay: 200
-  nodeFallenTime: 0.05
+  nodeFallenTime: 0.03
   boardSize: {x: 6, y: 8}
   nodePrefabs:
   - {fileID: 6252862563814508403, guid: 304af03ddd131574c960febc9c8175c8, type: 3}
@@ -8875,12 +8875,12 @@ MonoBehaviour:
   - {fileID: 585329418041887542, guid: ee58ef821f897604ea9ccae4917d0957, type: 3}
   - {fileID: 354577406348454814, guid: 66c54ada1904c9d41a7c21f593faf1b2, type: 3}
   attr:
-    atk: 100
-    mana: 46
-    def: 100
-    energy: 0.2
+    atk: 20
+    mana: 20
+    def: 20
+    energy: 0.25
     chestNodeAttr:
-      hpRecover: 10
+      hpRecover: 15
       energyUp: 1
       atkUp: 10
       defUp: 10
@@ -8950,7 +8950,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -9188,10 +9188,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillName: Heal
-  manaCost: 300
+  manaCost: 225
   exposition: Heal Instantly
   disableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  healAmount: 460
+  healAmount: 125
 --- !u!1 &1662759783
 GameObject:
   m_ObjectHideFlags: 0
@@ -9719,6 +9719,83 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 1704681552}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1710249122
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1710249123}
+  - component: {fileID: 1710249125}
+  - component: {fileID: 1710249124}
+  m_Layer: 5
+  m_Name: ComboFactorText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1710249123
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710249122}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1854252745}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 30}
+  m_SizeDelta: {x: 160, y: 30}
+  m_Pivot: {x: 1, y: 1}
+--- !u!114 &1710249124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710249122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.754717, g: 0.754717, b: 0.754717, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 24
+    m_FontStyle: 3
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 8
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: New Text
+--- !u!222 &1710249125
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710249122}
+  m_CullTransparentMesh: 0
 --- !u!1 &1734788084
 GameObject:
   m_ObjectHideFlags: 0
@@ -9780,15 +9857,20 @@ MonoBehaviour:
   attacks:
   - attr:
       animTrigger: PoisonClaw
-      atk: 200
-      time: 5
-      cd: 1
+      atk: 150
+      time: 0.5
+      cd: 0
   - attr:
       animTrigger: IceCast
       atk: 400
-      time: 10
-      cd: 1
-  maxHP: 10000
+      time: 2
+      cd: 2
+  - attr:
+      animTrigger: Explosion
+      atk: 1000
+      time: 5
+      cd: 4
+  maxHP: 3500
 --- !u!114 &1734788087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10032,7 +10114,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.509434, g: 0.252314, b: 0.252314, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -10394,7 +10476,8 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 1710249123}
   m_Father: {fileID: 1324120758}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10828,8 +10911,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -235, y: -37.5}
-  m_SizeDelta: {x: 230, y: 55}
+  m_AnchoredPosition: {x: -285, y: 0}
+  m_SizeDelta: {x: 330, y: 29.999998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1923834056
 MonoBehaviour:
