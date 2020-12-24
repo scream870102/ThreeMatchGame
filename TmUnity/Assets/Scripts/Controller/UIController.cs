@@ -89,7 +89,7 @@ namespace TmUnity
         void HandleGameStart(OnGameStart e)
         {
             gameEndImage.gameObject.SetActive(true);
-            resultText.text = "Game Start";
+            resultText.text = "Tasu Bomb";
             pressText.text = "Touch Screen to Start";
             recordText.text = "Do your best to get best point";
         }
