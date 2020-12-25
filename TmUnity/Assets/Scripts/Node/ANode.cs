@@ -8,7 +8,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Eccentric;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace TmUnity.Node
 {
