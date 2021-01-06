@@ -115,9 +115,9 @@ namespace TmUnity.Node
 
         public void MoveToPoint(Vector2Int newPoint) => Point = newPoint;
 
-        public void CheckResult(ref List<ANode> founds)
+        public void CheckResult(ref Dictionary<Vector2Int, ANode> founds)
         {
-            founds.Add(this);
+            founds.Add(Point, this);
             var nextPoint = default(Vector2Int);
             //left
             nextPoint.x = Point.x - 1;
@@ -141,12 +141,12 @@ namespace TmUnity.Node
 
         Vector2 ToAnchoredPosition() => new Vector2(point.x * size.x, -point.y * size.y);
 
-        void CheckNextNode(Vector2Int nextPoint, ref List<ANode> founds)
+        void CheckNextNode(Vector2Int nextPoint, ref Dictionary<Vector2Int, ANode> founds)
         {
             if (!controller.IsPointOutOfBoard(nextPoint))
             {
                 var nextNode = controller.ActiveNodes[nextPoint.x, nextPoint.y];
-                if (nextNode.IsActive && nextNode.Type == Type && !founds.Contains(nextNode))
+                if (nextNode.IsActive && nextNode.Type == Type && !founds.ContainsKey(nextPoint))
                     nextNode.CheckResult(ref founds);
             }
         }

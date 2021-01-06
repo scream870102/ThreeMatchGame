@@ -35,7 +35,7 @@ namespace TmUnity.Editor
                 Debug.Log($"Anchroed Position : {myScript.Node.RectTransform.anchoredPosition} Point : {myScript.Node.Point} ");
             if (GUILayout.Button("Check Result"))
             {
-                var founds = new List<ANode>();
+                var founds = new Dictionary<Vector2Int, ANode>();
                 myScript.Node.CheckResult(ref founds);
             }
 

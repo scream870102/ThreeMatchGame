@@ -113,12 +113,13 @@ namespace TmUnity.Node
                 if (unpairNode[i] == null)
                     continue;
                 var checkNode = unpairNode[i];
-                var resultNode = new List<ANode>();
+                var resultNode = new Dictionary<Vector2Int, ANode>();
                 checkNode.CheckResult(ref resultNode);
                 if (resultNode.Count >= 3)
                 {
-                    resultNode.ForEach(node => node.ChangeSprite(true));
-                    infoAndNodes.Add(GetEliminateResult(resultNode, unpairNode), resultNode);
+                    var resultList = resultNode.Values.ToList();
+                    resultList.ForEach(node => node.ChangeSprite(true));
+                    infoAndNodes.Add(GetEliminateResult(resultList, unpairNode), resultList);
                 }
                 else
                     checkNode.ChangeSprite(false);
